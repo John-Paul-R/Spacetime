@@ -3,15 +3,131 @@
  */
 package origin;
 
-import robocode.AdvancedRobot;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.geom.Point2D;
+import java.util.LinkedList;
 
+import robocode.*;
+import robocode.util.Utils;
 public class Minigun extends AdvancedRobot {
     
+    static LinkedList<EData> el;
+    double sd=1;
+    boolean scanned = false;
+    double _x, _y, _w, _h;
+    long _t;
+    double px=0, py=0;
     public void run() {
-
+        setAdjustGunForRobotTurn(true);
+		setAdjustRadarForGunTurn(true);
+        setTurnRadarRightRadians(4*Math.PI);
+        if (getRoundNum()>=0)
+            el = new LinkedList<EData>();
         while(true)
         {
-            break;
+            _x=getX();
+            _y=getY();
+            _w=getBattleFieldWidth();
+            _h=getBattleFieldHeight();
+            _t=getTime();
+            EData c = null;
+            if (el.size()>0)
+                c=el.getLast();
+            if (el.size()>0 && el.size() < 100) {
+                System.out.println("["+getTime()+"] Firing with HOT");
+                    //p=el.get(el.size()-2);
+                    double a=Utils.normalRelativeAngle(c.ab-getGunHeadingRadians());
+                    setTurnGunRightRadians(a);
+                setFire(2.1);
+            } else if (el.size()>100) {
+                System.out.println("["+getTime()+"] Firing with KNN");
+                long t=1;
+                EData cState = c;
+                while (Rules.getBulletSpeed(2.1)*t < Point2D.distance(cState.x, cState.y, _x, _y))
+                {
+                    try {
+                        cState = knnNext(el.get(el.indexOf(cState)+1));
+                    } catch (Exception e)
+                    {}
+                    
+                    t++;
+                    System.out.println(t);
+                }
+                px=cState.x;
+                py=cState.y;
+                double a=Utils.normalRelativeAngle(Math.atan2(cState.x-_x, cState.y-_y)-getGunHeadingRadians());
+                setTurnGunRightRadians(a);
+            }
+            System.out.println(c);
+            if (!scanned)
+                System.out.println("Not scanned on turn " + getTime() +"!");
+            scanned = false;
+           execute();
+        }
+    }
+    public void onPaint(Graphics2D g) {
+        g.setColor(Color.RED);
+        g.drawOval((int)px-18, (int)py-18, 36, 36);
+    }
+
+    public void onScannedRobot(ScannedRobotEvent e) {
+        if(el.size()>0) {
+            el.add(new EData(e, el.getLast()));
+        } else {
+            el.add(new EData(e, null));
+        }
+        sd*=-1;
+        double an = Utils.normalRelativeAngle(el.getLast().ab-getRadarHeadingRadians());
+        setTurnRadarRightRadians(an+Math.signum(an)*Math.PI/8);
+        //if (an==0)
+        //setTurnRadarRightRadians(2*Math.PI);
+        scanned = true;
+    }
+    public EData knnNext(EData state)
+    {
+        LinkedList<EData> eL = el;
+        EData c = state;
+        EData nn = null;
+        double nDist = Double.MAX_VALUE;
+        for (EData e : eL)
+        {
+            if (e.t!=c.t)
+            {
+                double eDist = Math.sqrt(Math.pow((e.h-c.h)/Math.PI/2, 2)+Math.pow((e.v-c.v)/800, 2)
+                    +Math.pow((e.td-c.td)/10000, 2)
+                    +Math.pow((e.d-c.d)/10000, 2)
+                    +Math.pow((e.x-c.x-_w/2)/100, 2)
+                    +Math.pow((e.y-c.y-_h/2)/100, 2));
+                
+                if (eDist < nDist)
+                {
+                    nn=e;
+                    nDist = eDist;
+                }
+            }
+            
+        }
+        return nn;
+    }
+    class EData{
+        double x,y,h,v,d,ab,en,b,cwd,cwb,t;//x, y, heading, velocity, energy, bearing, closest wall dist, closest wall bearing, time of data
+        double td,wti,ldd,wlh;//time since last decel, wave time to impact, last dodge direction, waves since last hit
+        EData(ScannedRobotEvent e, EData p)
+        {
+            b=e.getBearingRadians();
+            h=e.getHeadingRadians();
+            v=e.getVelocity();
+            d=e.getDistance();
+            en=e.getEnergy();
+            ab =(b+getHeadingRadians());
+            x=_x+Math.sin(ab)*d;
+            y=_y+Math.cos(ab)*d;
+            t=getTime();
+            if (p!=null)
+            {
+
+            }
         }
     }
 }
