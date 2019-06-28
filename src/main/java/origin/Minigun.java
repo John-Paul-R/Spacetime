@@ -62,7 +62,13 @@ public class Minigun extends AdvancedRobot {
             }
             System.out.println(c);
             if (!scanned)
+            {
                 System.out.println("Not scanned on turn " + getTime() +"!");
+                setTurnGunRight(Rules.GUN_TURN_RATE);
+                setTurnRadarRight(Rules.RADAR_TURN_RATE);
+                setTurnRight(Rules.MAX_TURN_RATE);
+            }
+                
             scanned = false;
             setFire(2.1);
            execute();
