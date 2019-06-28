@@ -6,6 +6,9 @@ package origin;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 
 import robocode.*;
@@ -17,13 +20,19 @@ public class Minigun extends AdvancedRobot {
     boolean scanned = false;
     double _x, _y, _w, _h;
     long _t;
-    double px=0, py=0;
+    final static int _k = 20;
+    double[] px=new double[_k], py=new double[_k];
+    
     public void run() {
         setAdjustGunForRobotTurn(true);
 		setAdjustRadarForGunTurn(true);
         setTurnRadarRightRadians(4*Math.PI);
         if (getRoundNum()<1)
+        {
             el = new LinkedList<EData>();
+            initKNN();
+        }
+
         while(true)
         {
             _x=getX();
@@ -35,32 +44,50 @@ public class Minigun extends AdvancedRobot {
             if (el.size()>0)
                 c=el.getLast();
             if (el.size()>0 && el.size() < 100) {
-                System.out.println("["+getTime()+"] Firing with HOT");
+                //System.out.println("["+getTime()+"] Firing with HOT");
                     //p=el.get(el.size()-2);
                     double a=Utils.normalRelativeAngle(c.ab-getGunHeadingRadians());
                     setTurnGunRightRadians(a);
                 setFire(2.1);
             } else if (el.size()>100) {//Begin using knn gun
-                System.out.println("["+getTime()+"] Firing with KNN");
+                //System.out.println("["+getTime()+"] Firing with KNN");
                 long t=1;
                 EData cState = c;
+                ArrayList<EData> cStates = null;
                 while (Rules.getBulletSpeed(2.1)*t < Point2D.distance(cState.x, cState.y, _x, _y))//predict into the future far enough (for a given bullet speed)
                 {
                     try {
-                        cState = knnNext(cState);
+                        ArrayList<EData> ncStates = knnNext(_k, cState);
+                        if (ncStates != null)
+                        {
+                            cStates = ncStates;
+                        }
+                        cState = ncStates.get(0);
                         cState = el.get(el.indexOf(cState)+1);
                     } catch (Exception e)
-                    {}
+                    {
+                        //System.out.println("["+getTime()+"] Hit list time boundary.");
+                    }
                     
                     t++;
-                    System.out.println(t);
+                    //System.out.println(t);
                 }
-                px=cState.x;
-                py=cState.y;
+                cStates = knnNext(_k, cState);
+                for (int i=0; i < _k; i++)
+                {
+                    if (cStates != null)
+                    {
+                        px[i]=cStates.get(i).x;
+                        py[i]=cStates.get(i).y;
+                        System.out.println("test");
+                    }
+                    
+                }
+                
                 double a=Utils.normalRelativeAngle(Math.atan2(cState.x-_x, cState.y-_y)-getGunHeadingRadians());
                 setTurnGunRightRadians(a);
             }
-            System.out.println(c);
+            //System.out.println(c);
             if (!scanned)
             {
                 System.out.println("Not scanned on turn " + getTime() +"!");
@@ -76,7 +103,8 @@ public class Minigun extends AdvancedRobot {
     }
     public void onPaint(Graphics2D g) {
         g.setColor(Color.RED);
-        g.drawOval((int)px-18, (int)py-18, 36, 36);
+        for (int i=0; i < _k; i++)
+            g.drawOval((int)px[i]-18, (int)py[i]-18, 36, 36);
     }
 
     public void onScannedRobot(ScannedRobotEvent e) {
@@ -92,36 +120,97 @@ public class Minigun extends AdvancedRobot {
         //setTurnRadarRightRadians(2*Math.PI);
         scanned = true;
     }
-    public EData knnNext(EData state)
+    
+    static double[] maxValArr;
+    public void initKNN()
+    {
+        maxValArr=new double[_k];
+        for (int i=0; i < _k; i++)
+        {
+            maxValArr[i] = Double.MAX_VALUE;
+        }
+    }
+    public ArrayList<EData> knnNext(int k, EData state)
     {
         LinkedList<EData> eL = el;
         EData c = state;
-        EData nn = null;
-        double nDist = Double.MAX_VALUE;
+        ArrayList<EData> knn = new ArrayList<EData>(k);
+        double[] nDist = maxValArr.clone();
+        double nDistMax = Double.MAX_VALUE;
+        int maxIndex = k-1;
+
         for (EData e : eL)
         {
             if (e.t!=c.t)
             {
-                double hw = Math.pow((e.h-c.h)/Math.PI/2, 2);
-                double vw = Math.pow((e.v-c.v)/800, 2);
-                double tdw = Math.pow((e.td-c.td)/10000, 2);
-                double dw = Math.pow((e.d-c.d)/10000, 2);
-
-                double eDist = Math.sqrt(hw + vw + tdw + dw);
-
-                if (eDist < nDist)
+                
+                double eDist = e.distanceTo(c);
+                if (e.getLastDist() < nDistMax)
                 {
-                    nn=e;
-                    nDist = eDist;
+                    System.out.println(knn.size());
+                    EData max = null;
+                    if (knn.size() == k)
+                    {
+                        max = Collections.max(knn);
+                        knn.remove(max);
+                        
+                        //IDK IF THIS IS WHERE THIS SHOULD GO:
+                        //nDist[maxIndex] = eDist;
+                        //maxIndex = getMaxIndex(nDist);
+                        max =Collections.max(knn);
+                        nDistMax = max.getLastDist();
+                    }
+                        
+                    knn.add(e);
+                    
+                    
                 }
+
+                
+
+
+                /* for (int i=0; i < k, i++)
+                {
+                    if (eDist < nDist[i])
+                    {
+                        knn[i]=e;
+                        nDist = eDist[i];
+                    }
+                } */
+
             }
             
         }
-        return nn;
+        knn.sort(new Comparator<EData>() {
+                    
+            public int compare(EData d1, EData d2)
+            {
+                return (int)(d2.getLastDist() - d1.getLastDist());
+            }
+        });
+        return knn;
     }
-    class EData{
+    
+    private int getMaxIndex(double[] arr) {
+        double max = Double.MIN_VALUE;
+        int mIndex = -1;
+        for (int i=0; i < arr.length; i++)
+        {
+            if (arr[i] > max)
+            {
+                mIndex = i;
+                max = arr[i];
+            }
+        }
+        return mIndex;
+    }
+
+    class EData implements Comparable<EData> {
         double x,y,h,v,d,ab,en,b,cwd,cwb,t;//x, y, heading, velocity, energy, bearing, closest wall dist, closest wall bearing, time of data
         double td,wti,ldd,wlh;//time since last decel, wave time to impact, last dodge direction, waves since last hit
+        
+        double lastDist;
+        
         EData(ScannedRobotEvent e, EData p)
         {
             b=e.getBearingRadians();
@@ -137,6 +226,31 @@ public class Minigun extends AdvancedRobot {
             {
 
             }
+        }
+
+        public double distanceTo(EData other)
+        {
+            double hw = Math.pow(robocode.util.Utils.normalAbsoluteAngle(h-other.h)/Math.PI/2, 2);
+            double vw = Math.pow((v-other.v)/800, 2);
+            double tdw = Math.pow((td-other.td)/10000, 2);
+            double dw = Math.pow((d-other.d)/10000, 2);
+
+            double eDist = Math.sqrt(hw + vw + tdw + dw);
+
+            lastDist = eDist;
+
+            return eDist;
+        }
+        public double getLastDist()
+        {
+            return lastDist;
+        }
+        @Override
+        public int compareTo(EData other)
+        {
+
+            return (int)(this.getLastDist() - other.getLastDist());
+
         }
     }
 }
