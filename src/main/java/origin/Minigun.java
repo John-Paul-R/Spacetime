@@ -22,7 +22,7 @@ public class Minigun extends AdvancedRobot {
         setAdjustGunForRobotTurn(true);
 		setAdjustRadarForGunTurn(true);
         setTurnRadarRightRadians(4*Math.PI);
-        if (getRoundNum()>=0)
+        if (getRoundNum()<1)
             el = new LinkedList<EData>();
         while(true)
         {
@@ -40,14 +40,15 @@ public class Minigun extends AdvancedRobot {
                     double a=Utils.normalRelativeAngle(c.ab-getGunHeadingRadians());
                     setTurnGunRightRadians(a);
                 setFire(2.1);
-            } else if (el.size()>100) {
+            } else if (el.size()>100) {//Begin using knn gun
                 System.out.println("["+getTime()+"] Firing with KNN");
                 long t=1;
                 EData cState = c;
-                while (Rules.getBulletSpeed(2.1)*t < Point2D.distance(cState.x, cState.y, _x, _y))
+                while (Rules.getBulletSpeed(2.1)*t < Point2D.distance(cState.x, cState.y, _x, _y))//predict into the future far enough (for a given bullet speed)
                 {
                     try {
-                        cState = knnNext(el.get(el.indexOf(cState)+1));
+                        cState = knnNext(cState);
+                        cState = el.get(el.indexOf(cState)+1);
                     } catch (Exception e)
                     {}
                     
@@ -63,6 +64,7 @@ public class Minigun extends AdvancedRobot {
             if (!scanned)
                 System.out.println("Not scanned on turn " + getTime() +"!");
             scanned = false;
+            setFire(2.1);
            execute();
         }
     }
@@ -94,12 +96,13 @@ public class Minigun extends AdvancedRobot {
         {
             if (e.t!=c.t)
             {
-                double eDist = Math.sqrt(Math.pow((e.h-c.h)/Math.PI/2, 2)+Math.pow((e.v-c.v)/800, 2)
-                    +Math.pow((e.td-c.td)/10000, 2)
-                    +Math.pow((e.d-c.d)/10000, 2)
-                    +Math.pow((e.x-c.x-_w/2)/100, 2)
-                    +Math.pow((e.y-c.y-_h/2)/100, 2));
-                
+                double hw = Math.pow((e.h-c.h)/Math.PI/2, 2);
+                double vw = Math.pow((e.v-c.v)/800, 2);
+                double tdw = Math.pow((e.td-c.td)/10000, 2);
+                double dw = Math.pow((e.d-c.d)/10000, 2);
+
+                double eDist = Math.sqrt(hw + vw + tdw + dw);
+
                 if (eDist < nDist)
                 {
                     nn=e;
