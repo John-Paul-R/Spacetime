@@ -20,9 +20,12 @@ public class Minigun extends AdvancedRobot {
     boolean scanned = false;
     double _x, _y, _w, _h;
     long _t;
-    final static int _k = 20;
+    final static int _k = 2;
     double[] px=new double[_k], py=new double[_k];
-    
+    double[][] p = new double[100][2];
+    double xx=0, yy=0;
+    static double[] maxValArr;
+
     public void run() {
         setAdjustGunForRobotTurn(true);
 		setAdjustRadarForGunTurn(true);
@@ -56,34 +59,57 @@ public class Minigun extends AdvancedRobot {
                 ArrayList<EData> cStates = null;
                 while (Rules.getBulletSpeed(2.1)*t < Point2D.distance(cState.x, cState.y, _x, _y))//predict into the future far enough (for a given bullet speed)
                 {
-                    try {
-                        ArrayList<EData> ncStates = knnNext(_k, cState);
+                    //try {
+                    ArrayList<EData> ncStates = knn(_k, cState);
+                    int i = 0;
+                    int nextIndex = Integer.MAX_VALUE;
+                    while (nextIndex >= el.size())
+                    {
+                        nextIndex = el.indexOf(ncStates.get(i))+1;
+                    }
+                    {
+                        
                         if (ncStates != null)
                         {
                             cStates = ncStates;
                         }
-                        cState = ncStates.get(0);
-                        cState = el.get(el.indexOf(cState)+1);
-                    } catch (Exception e)
-                    {
-                        //System.out.println("["+getTime()+"] Hit list time boundary.");
+                        cState = new EData(cState, ncStates.get(0), el.get(nextIndex));
+                        xx = cState.x;
+                        yy = cState.y;
+                        //System.out.println("TEST");
+                        if (t <= 100)
+                        p[(int)t-1] = new double[] {xx, yy};
                     }
+                        
+                        //cState = ;
+                    //} catch (Exception e)
+                    //{
+                    //    System.out.println("["+getTime()+"] Hit list time boundary.");
+                    //}
                     
                     t++;
                     //System.out.println(t);
+
                 }
-                cStates = knnNext(_k, cState);
+                //cStates = knn(_k, cState);
+                
                 for (int i=0; i < _k; i++)
                 {
                     if (cStates != null)
                     {
-                        px[i]=cStates.get(i).x;
-                        py[i]=cStates.get(i).y;
-                        System.out.println("test");
+                        EData cS = null;
+                        EData c1 = cStates.get(i);
+                        int nIndex = el.indexOf(c1)+1;
+                        if (nIndex < el.size())
+                        {
+                            cS = new EData(cState, c1, el.get(el.indexOf(c1)+1));
+                            px[i]=cS.x;
+                            py[i]=cS.y;
+                        }
+                        
+                        //System.out.println("test");
                     }
-                    
                 }
-                
                 double a=Utils.normalRelativeAngle(Math.atan2(cState.x-_x, cState.y-_y)-getGunHeadingRadians());
                 setTurnGunRightRadians(a);
             }
@@ -101,10 +127,25 @@ public class Minigun extends AdvancedRobot {
            execute();
         }
     }
+    
     public void onPaint(Graphics2D g) {
         g.setColor(Color.RED);
         for (int i=0; i < _k; i++)
+        {
             g.drawOval((int)px[i]-18, (int)py[i]-18, 36, 36);
+
+        }
+        g.setColor(Color.GREEN);
+        g.drawOval((int)xx-18, (int)yy-18, 36, 36);
+
+        int size = 10;
+        int hsize = size / 2;
+        g.setColor(Color.WHITE);
+        for (int i=0; i < p.length; i++)
+        {
+            g.fillOval((int)p[i][0]-hsize, (int)p[i][1]-hsize, size, size);
+
+        }
     }
 
     public void onScannedRobot(ScannedRobotEvent e) {
@@ -120,18 +161,16 @@ public class Minigun extends AdvancedRobot {
         //setTurnRadarRightRadians(2*Math.PI);
         scanned = true;
     }
-    
-    static double[] maxValArr;
-    public void initKNN()
-    {
+
+    public void initKNN() {
         maxValArr=new double[_k];
         for (int i=0; i < _k; i++)
         {
             maxValArr[i] = Double.MAX_VALUE;
         }
     }
-    public ArrayList<EData> knnNext(int k, EData state)
-    {
+    
+    public ArrayList<EData> knn(int k, EData state) {
         LinkedList<EData> eL = el;
         EData c = state;
         ArrayList<EData> knn = new ArrayList<EData>(k);
@@ -147,7 +186,7 @@ public class Minigun extends AdvancedRobot {
                 double eDist = e.distanceTo(c);
                 if (e.getLastDist() < nDistMax)
                 {
-                    System.out.println(knn.size());
+                    //System.out.println(knn.size());
                     EData max = null;
                     if (knn.size() == k)
                     {
@@ -227,10 +266,38 @@ public class Minigun extends AdvancedRobot {
 
             }
         }
+        EData(EData start, EData nearest, EData next)
+        {
+            double[] a = start.getDataArr();
+            double[] b = nearest.getDataArr();
+            double[] c = next.getDataArr();
+            
+            
 
+
+
+            this.b= a[0]+(c[0]-b[0]);
+            h=      robocode.util.Utils.normalRelativeAngle(a[1]+(c[1]-b[1]));
+            v=      a[2]+(c[2]-b[2]);
+            d=      a[3]+(c[3]-b[3]);
+            en=     a[4]+(c[4]-b[4]);
+            ab=     a[5]+(c[5]-b[5]);
+            x=      (c[6]-b[6]);
+            y=      (c[7]-b[7]);
+            
+            t=      a[8]+(c[8]-b[8]);
+            double distTraveled = Math.sqrt(x*x + y*y);
+            double travelDirection = Math.atan2(x, y);
+            x = a[6]+(distTraveled * Math.sin(travelDirection - b[1] + h));
+            y = a[7]+(distTraveled * Math.cos(travelDirection - b[1] + h));
+        }
+        public double[] getDataArr()
+        {
+            return new double[] {b,h,v,d,en,ab,x,y,t};
+        }
         public double distanceTo(EData other)
         {
-            double hw = Math.pow(robocode.util.Utils.normalAbsoluteAngle(h-other.h)/Math.PI/2, 2);
+            double hw = Math.pow(robocode.util.Utils.normalAbsoluteAngle(h-other.h)/Math.PI/2/10, 2);
             double vw = Math.pow((v-other.v)/800, 2);
             double tdw = Math.pow((td-other.td)/10000, 2);
             double dw = Math.pow((d-other.d)/10000, 2);
