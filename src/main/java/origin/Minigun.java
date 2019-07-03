@@ -18,46 +18,97 @@ public class Minigun extends AdvancedRobot {
     static LinkedList<EData> el;
     double sd=1;
     boolean scanned = false;
-    double _x, _y, _w, _h;
-    long _t;
+    double /*_x, _y,*/_w, _h;
+    //long _t;
+    long time;
     final static int _k = 2;
     double[] px=new double[_k], py=new double[_k];
-    double[][] p = new double[100][2];
+    double[][] p;
     double xx=0, yy=0;
     static double[] maxValArr;
+    static boolean useKNN = false;
+    private static Database data;
+    private static AComponentManager
+        gun,
+        radar,
+        move;
 
-    public void run() {
+    private void init() {
         setAdjustGunForRobotTurn(true);
 		setAdjustRadarForGunTurn(true);
         setTurnRadarRightRadians(4*Math.PI);
-        if (getRoundNum()<1)
-        {
+        _w=getBattleFieldWidth();
+        _h=getBattleFieldHeight();
+
+        data = new Database(this);
+        radar = new RadarManager();
+        move = new MoveManager();
+        gun = new GunManager();
+
+        radar.init(this, data);
+        move.init(this, data);
+        gun.init(this, data);
+        
+        if (getRoundNum()<1) {
             el = new LinkedList<EData>();
             initKNN();
         }
+    }
 
+    private void roundStart() {
+        data.roundStart();
+        radar.roundStart();
+        move.roundStart();
+        gun.roundStart();
+    }
+
+    public void run() {
+        //Round One Only
+        if (getRoundNum() == 0) {
+            this.init();
+        }
+        
+        //Each New Round
+        this.roundStart();
+
+        //Main Loop (Each Turn)
         while(true)
         {
-            _x=getX();
-            _y=getY();
-            _w=getBattleFieldWidth();
-            _h=getBattleFieldHeight();
-            _t=getTime();
+            //Update info in main bot object about position & other variables so that we can use
+            //the overrided methods (like getX()) (thereby avoiding repeated calls to Robocode client)
+            //This also occurs in the onScannedRobot method, as robots move AFTER execute()
+            //(cant put this right after execute() however, because robots are paused until its completion)
+            this.update();
+            //Update Components (Change modes if needed)
+            data.update();
+            radar.update();
+            move.update();
+            gun.update();
+
+            //execute all
+            radar.execute();
+            move.execute();
+            gun.execute();
+
             EData c = null;
+            if (el.size()>100) {
+                useKNN = true;
+            }
             if (el.size()>0)
                 c=el.getLast();
-            if (el.size()>0 && el.size() < 100) {
+            if (el.size()>0 && !useKNN) {
                 //System.out.println("["+getTime()+"] Firing with HOT");
                     //p=el.get(el.size()-2);
                     double a=Utils.normalRelativeAngle(c.ab-getGunHeadingRadians());
                     setTurnGunRightRadians(a);
                 setFire(2.1);
-            } else if (el.size()>100) {//Begin using knn gun
+            } else if (useKNN) {//Begin using knn gun
                 //System.out.println("["+getTime()+"] Firing with KNN");
                 long t=1;
                 EData cState = c;
                 ArrayList<EData> cStates = null;
-                while (Rules.getBulletSpeed(2.1)*t < Point2D.distance(cState.x, cState.y, _x, _y))//predict into the future far enough (for a given bullet speed)
+                p = new double[100][2];
+                while (Rules.getBulletSpeed(2.1)*t < Point2D.distance(cState.x, cState.y, getX(), getY())) //predict into the future far enough (for a given bullet speed)
                 {
                     //try {
                     ArrayList<EData> ncStates = knn(_k, cState);
@@ -77,8 +128,9 @@ public class Minigun extends AdvancedRobot {
                         xx = cState.x;
                         yy = cState.y;
                         //System.out.println("TEST");
-                        if (t <= 100)
-                        p[(int)t-1] = new double[] {xx, yy};
+                        if (t <= 100) {
+                            p[(int)t-1] = new double[] {xx, yy};
+                        }
                     }
                         
                         //cState = ;
@@ -110,49 +162,106 @@ public class Minigun extends AdvancedRobot {
                         //System.out.println("test");
                     }
                 }
-                double a=Utils.normalRelativeAngle(Math.atan2(cState.x-_x, cState.y-_y)-getGunHeadingRadians());
+                double a=Utils.normalRelativeAngle(Math.atan2(cState.x-getX(), cState.y-getY())-getGunHeadingRadians());
                 setTurnGunRightRadians(a);
             }
             //System.out.println(c);
             if (!scanned)
             {
                 System.out.println("Not scanned on turn " + getTime() +"!");
-                setTurnGunRight(Rules.GUN_TURN_RATE);
-                setTurnRadarRight(Rules.RADAR_TURN_RATE);
-                setTurnRight(Rules.MAX_TURN_RATE);
+                setTurnGunRightRadians(Rules.GUN_TURN_RATE_RADIANS);
+                setTurnRadarRightRadians(Rules.RADAR_TURN_RATE_RADIANS);
+                setTurnRightRadians(Rules.MAX_TURN_RATE_RADIANS);
             }
                 
             scanned = false;
             setFire(2.1);
-           execute();
+            execute();
         }
     }
-    
+
+    private static boolean showGraphs = true;
+    public void onKeyPress(KeyEvent e) {
+        if (e.getSourceEvent().getKeyChar() == 'q') {
+            showGraphs = !showGraphs;
+        }
+    }
     public void onPaint(Graphics2D g) {
-        g.setColor(Color.RED);
-        for (int i=0; i < _k; i++)
-        {
-            g.drawOval((int)px[i]-18, (int)py[i]-18, 36, 36);
+        if (useKNN) {
+            //predicted paths
+            final int osize = 10;
+            final int ohsize = osize / 2;
+            final int rsize = 36;
+            final int rhsize = rsize / 2;
+            int iPath = 0;
+            g.setColor(new Color(255, 255, 255, 50));
+            while (iPath < p.length && p[iPath][0] != 0.0D && p[iPath][1] != 0.0D) {
+                g.fillOval((int)p[iPath][0]-ohsize, (int)p[iPath][1]-ohsize, osize, osize);
+                g.fillRect((int)p[iPath][0]-rhsize, (int)p[iPath][1]-rhsize, rsize, rsize);
+                iPath++;
+            }
+    
+            //predicted endpoints
+            g.setColor(Color.RED);
+            for (int i=0; i < _k; i++)
+            {
+                g.drawOval((int)px[i]-18, (int)py[i]-18, 36, 36);
+    
+            }
+            //closest neighbor endpoint
+            g.setColor(Color.GREEN);
+            g.drawOval((int)xx-18, (int)yy-18, 36, 36);
+        
+            if (showGraphs)
+            {
+                
+                
+                int w = (int)_w, h = (int)_h;
+                final int[][] gDims = new int[][] {{1000, 300}};
+                final int[][] gLoc  = new int[][] {{w-gDims[0][0], 0}};
+                final int pointSize = 4;
+                final int hpointSize = pointSize/2;
 
+                g.drawLine(gLoc[0][0], gLoc[0][1], gLoc[0][0], gLoc[0][1]+gDims[0][1]);
+                g.drawLine(gLoc[0][0], gLoc[0][1], gLoc[0][0]+gDims[0][0], gLoc[0][1]);
+
+                double step = (double)gDims[0][0]/(double)el.size();
+                double x = 0;
+                int ys[][] = new int[3][el.size()];
+                int xs[] = new int[el.size()];
+                int count = 0;
+                for (EData e : el)
+                {
+                    ys[0][count] = (int)(e.getLastDist()*1000);
+                    ys[1][count] = (int)(e.h*10);
+                    ys[2][count] = (int)(e.v*10);
+                    //ys[2][count] = (int)(e.*10);
+                    x += step;
+                    xs[count] = (int)x;
+                    //g.fillOval((int)(gLoc[0][0] +x -hpointSize), (int)(gLoc[0][1] +y -hpointSize), pointSize, pointSize);
+                    //System.out.println(step + "\t\t\t" + x);
+                    count++;
+                }
+                g.setColor(new Color(150, 255, 150, 200));
+                g.drawPolyline(xs, ys[0], ys[0].length);
+                g.setColor(new Color(255, 150, 150, 200));
+                g.drawPolyline(xs, ys[1], ys[1].length);
+                g.setColor(new Color(150, 150, 255, 200));
+                g.drawPolyline(xs, ys[2], ys[2].length);
+                //g.setColor(new Color(255, 150, 255, 200));
+                //g.drawPolyline(xs, ys[3], ys[3].length);
+            }
         }
-        g.setColor(Color.GREEN);
-        g.drawOval((int)xx-18, (int)yy-18, 36, 36);
 
-        int size = 10;
-        int hsize = size / 2;
-        g.setColor(Color.WHITE);
-        for (int i=0; i < p.length; i++)
-        {
-            g.fillOval((int)p[i][0]-hsize, (int)p[i][1]-hsize, size, size);
-
-        }
+        
     }
 
     public void onScannedRobot(ScannedRobotEvent e) {
+        this.update();
         if(el.size()>0) {
-            el.add(new EData(e, el.getLast()));
+            el.add(new EData(e, el.getLast(), this));
         } else {
-            el.add(new EData(e, null));
+            el.add(new EData(e, null, this));
         }
         sd*=-1;
         double an = Utils.normalRelativeAngle(el.getLast().ab-getRadarHeadingRadians());
@@ -244,80 +353,63 @@ public class Minigun extends AdvancedRobot {
         return mIndex;
     }
 
-    class EData implements Comparable<EData> {
-        double x,y,h,v,d,ab,en,b,cwd,cwb,t;//x, y, heading, velocity, energy, bearing, closest wall dist, closest wall bearing, time of data
-        double td,wti,ldd,wlh;//time since last decel, wave time to impact, last dodge direction, waves since last hit
-        
-        double lastDist;
-        
-        EData(ScannedRobotEvent e, EData p)
-        {
-            b=e.getBearingRadians();
-            h=e.getHeadingRadians();
-            v=e.getVelocity();
-            d=e.getDistance();
-            en=e.getEnergy();
-            ab =(b+getHeadingRadians());
-            x=_x+Math.sin(ab)*d;
-            y=_y+Math.cos(ab)*d;
-            t=getTime();
-            if (p!=null)
-            {
 
-            }
-        }
-        EData(EData start, EData nearest, EData next)
-        {
-            double[] a = start.getDataArr();
-            double[] b = nearest.getDataArr();
-            double[] c = next.getDataArr();
-            
-            
+    private double
+        x,
+        y,
+        heading,
+        gunHeading,
+        radarHeading;
 
-
-
-            this.b= a[0]+(c[0]-b[0]);
-            h=      robocode.util.Utils.normalRelativeAngle(a[1]+(c[1]-b[1]));
-            v=      a[2]+(c[2]-b[2]);
-            d=      a[3]+(c[3]-b[3]);
-            en=     a[4]+(c[4]-b[4]);
-            ab=     a[5]+(c[5]-b[5]);
-            x=      (c[6]-b[6]);
-            y=      (c[7]-b[7]);
-            
-            t=      a[8]+(c[8]-b[8]);
-            double distTraveled = Math.sqrt(x*x + y*y);
-            double travelDirection = Math.atan2(x, y);
-            x = a[6]+(distTraveled * Math.sin(travelDirection - b[1] + h));
-            y = a[7]+(distTraveled * Math.cos(travelDirection - b[1] + h));
-        }
-        public double[] getDataArr()
-        {
-            return new double[] {b,h,v,d,en,ab,x,y,t};
-        }
-        public double distanceTo(EData other)
-        {
-            double hw = Math.pow(robocode.util.Utils.normalAbsoluteAngle(h-other.h)/Math.PI/2/10, 2);
-            double vw = Math.pow((v-other.v)/800, 2);
-            double tdw = Math.pow((td-other.td)/10000, 2);
-            double dw = Math.pow((d-other.d)/10000, 2);
-
-            double eDist = Math.sqrt(hw + vw + tdw + dw);
-
-            lastDist = eDist;
-
-            return eDist;
-        }
-        public double getLastDist()
-        {
-            return lastDist;
-        }
-        @Override
-        public int compareTo(EData other)
-        {
-
-            return (int)(this.getLastDist() - other.getLastDist());
-
-        }
+    private void update() {
+        x = super.getX();
+        y = super.getY();
+        heading = super.getHeadingRadians();
+        gunHeading = super.getGunHeadingRadians();
+        radarHeading = super.getRadarHeadingRadians();
+        time = super.getTime();
+        //System.out.println(heading);
     }
+
+
+    //Overrides
+    @Override
+    public double getX() {
+        return this.x;
+    }
+    @Override
+    public double getY() {
+        return this.y;
+    }
+    @Override
+    public double getHeadingRadians() {
+        return this.heading;
+    }
+    @Override
+    public double getHeading() {
+        return this.heading;
+    }
+    @Override
+    public double getGunHeadingRadians() {
+        return this.gunHeading;
+    }
+    @Override
+    public double getGunHeading() {
+        return this.gunHeading;
+    }
+    @Override
+    public double getRadarHeadingRadians() {
+        return this.radarHeading;
+    }
+    @Override
+    public double getRadarHeading()
+    {
+        return this.radarHeading;
+    }
+    @Override
+    public long getTime()
+    {
+        return this.time;
+    }
+    
 }
