@@ -51,11 +51,7 @@ public class KDNode<E extends Number> {
             if (cSize < maxSize)
             {
                 split(getWidestDim());
-                if (element.getKDValues().get(splitDim).doubleValue() > this.boundValue) {
-                    upperNode.add(element);
-                } else {
-                    lowerNode.add(element);
-                }
+                sendToChildNode(element);
             }
             elements.add(element);
 
@@ -69,10 +65,18 @@ public class KDNode<E extends Number> {
                 }
             }
         } else {
-            
+            sendToChildNode(element);
         }
     }
     
+    private void sendToChildNode(KDElement<E> element) {
+        if (element.getKDValues().get(splitDim).doubleValue() > this.boundValue) {
+            upperNode.add(element);
+        } else {
+            lowerNode.add(element);
+        }
+    }
+
     private void split(int dimensionIndex) {
 
         elements.sort(new Comparator<KDElement<E>>() {
@@ -114,5 +118,50 @@ public class KDNode<E extends Number> {
             }
         }
         return widestIndex;
+    }
+
+    public List<KDElement<E>> getKNN(KDElement<E> target, int k) {
+        List<KDElement<E>> out = null;
+        if (isLeaf) {
+            //iterate through and test distances to find nearest
+            double[] minDists = new double[k];
+            ArrayList<KDElement<E>> minElements = new ArrayList<KDElement<E>>(k);
+            double  maxMinDist  = Double.MAX_VALUE;
+            int     maxMinIndex = -1;
+            int cIndex = 0;
+            for (int i=0; i < elements.size(); i++) {
+                KDElement<E> e = elements.get(i);
+                double cDist = e.kdDistanceTo(target); // TODO This changes the value of 'lastDist' within the KDElement object
+                if (maxMinIndex == -1 && cDist <= maxMinDist) {
+                    minDists[cIndex] = cDist;
+                    minElements.add(cIndex, e);
+                    cIndex++;
+                } else if (maxMinIndex != -1 && cDist <= maxMinDist) {
+                    minDists[maxMinIndex] = cDist;
+                    minElements.set(maxMinIndex, e);
+                }
+
+                if (cIndex+1 == cSize)
+                {
+                    minElements.sort(new Comparator<KDElement<E>>() {
+                    
+                        public int compare(KDElement<E> e1, KDElement<E> e2)
+                        {
+                            return (int)(e2.getLastKDDist() - e1.getLastKDDist());
+                        }
+                    });
+                }
+                out = minElements;
+            }
+        } else {
+            //traverse kd tree
+            if (target.getKDValues().get(splitDim).doubleValue() > this.boundValue) {
+                out = upperNode.getKNN(target, k);
+            } else {
+                out = lowerNode.getKNN(target, k);
+            }
+        }
+
+        return out;
     }
 }

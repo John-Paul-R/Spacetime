@@ -1,4 +1,7 @@
 package origin;
+
+import java.util.List;
+
 /**
  *
  * @param <E> The type of the elements to be put in this tree.
@@ -23,6 +26,10 @@ public class KDTree<E extends Number> {
 
     public void add(KDElement<E> element) {
         root.add(element);
+    }
+
+    public List<KDElement<E>> getKNN(KDElement<E> target, int k) {
+        return root.getKNN(target, k);
     }
 
 }
