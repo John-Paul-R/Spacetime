@@ -2,14 +2,22 @@ package origin;
 
 import robocode.ScannedRobotEvent;
 
-public class EnemyState extends ABotState {
+public class EnemyState extends BotState {
 
     private double
         bearing, //relative to our bot, -pi to pi
         absBearing, //global, 0 to 2pi
-        lateralBearing, /*Derivative stat. Is the bearing of the enemy bot relative to the straight line from us to them.
+        lateralBearing, /* Derivative stat. Is the bearing of the enemy bot relative to the straight line from us to them.
                         NOTE: Consider assuming that they are always facing us (thus limiting the angles to -pi/2 to pi/2 or 0 to pi)*/
         distance;
+
+    //Secondary variables (Note: tsl = time since last)
+    int tslBulletFired;
+    int tslDeceleration;
+
+    //Dynamic variables (Essentially a mini cache, so that things do not need to be recalculated within one turn)
+    private double lastDist;
+    private int turnCalculatedLastDist;
 
     public EnemyState(double x, double y, double energy, double heading, double velocity, long time) {
         super.init(x, y, energy, heading, velocity, time);
@@ -41,6 +49,9 @@ public class EnemyState extends ABotState {
     }
     public double getDistance() {
         return bearing;
+    }
+    public double getLastDist() { //TODO update this so that it checks if dist needs to be updated
+        return lastDist;
     }
 
 }

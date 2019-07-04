@@ -1,5 +1,6 @@
 package origin.world;
 
 interface ITimeDependent<T> {
-    T predictNextState();
+    //T predictNextState();
+    //TODO UPDATE OR REMOVE
 }

@@ -10,29 +10,32 @@ public class GunManager extends AComponentManager {
 
     }
 
-    @Override
-    public void roundStart() {
+	@Override
+	public void roundStart() {
+		
+	}
 
-    }
+	@Override
+	public void update() {
+		
+	}
 
-    @Override
-    public void execute() {
+	@Override
+	public void execute() {
+		
+	}
 
-    }
+	@Override
+	public void keyControl(KeyEvent e) {
+		
+	}
 
-    @Override
-    public void keyControl(KeyEvent e) {
+	@Override
+	public void paint(Graphics2D g, int[] paintOptions) {
+		
+	}
 
-    }
 
-    @Override
-    public void paint(Graphics2D g, int[] paintOptions) {
 
-    }
-
-    @Override
-    public void update() {
-
-    }
 
 }

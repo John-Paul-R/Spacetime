@@ -12,7 +12,7 @@ class RadarManager extends AComponentManager {
 
     @Override
     public void roundStart() {
-
+        
     }
 
     @Override

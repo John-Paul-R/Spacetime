@@ -1,36 +1,39 @@
 package origin.world;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 
 import origin.*;
 
-public class World {
+public class WorldRunner {
 
     //World Components
     private Minigun selfObj;//TODO figure out how to put my own planned movements into this algorithm
     private Bot<SelfState> self;
-    private ArrayList<Bot<EnemyState>> activeBots;
-    private ArrayList<Bot<EnemyState>> eliminatedBots;
+    private HashMap<String, Bot<EnemyState>> activeBots;
+    private HashMap<String, Bot<EnemyState>> eliminatedBots;
 
     //Prediction Cache
     private LinkedList<WorldState> predicted; //A List containing the most recently predicted worldstates (in order of time)
     private long predictionStartTime; //The time of the first predicted state in the list
 
-    public World() {
+    public WorldRunner() {
 
     }
 
-    public void init(Minigun self, Database data) {
-        activeBots = data.getBots();
-        eliminatedBots = new ArrayList<Bot<EnemyState>>(activeBots.size());
+    public void init(Minigun self, DataManager data) {
+        activeBots = data.getActiveBots();
+        eliminatedBots = new HashMap<String, Bot<EnemyState>>();
     }
     public void roundStart() {
-        activeBots.addAll(eliminatedBots);
+        activeBots.putAll(eliminatedBots);
+        eliminatedBots.clear();
     }
 
     public WorldState PIF() {
+        //Go through all bots and get their next BotState and update Wave/Bullet positions
+        
         return null;
     }
 }

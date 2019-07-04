@@ -27,7 +27,7 @@ public class Minigun extends AdvancedRobot {
     double xx=0, yy=0;
     static double[] maxValArr;
     static boolean useKNN = false;
-    private static Database data;
+    private static DataManager data;
     private static AComponentManager
         gun,
         radar,
@@ -40,7 +40,7 @@ public class Minigun extends AdvancedRobot {
         _w=getBattleFieldWidth();
         _h=getBattleFieldHeight();
 
-        data = new Database(this);
+        data = new DataManager(this);
         radar = new RadarManager();
         move = new MoveManager();
         gun = new GunManager();
@@ -411,5 +411,9 @@ public class Minigun extends AdvancedRobot {
     {
         return this.time;
     }
+
+	public SelfState getCurrentState() {
+		return null;
+	}
     
 }

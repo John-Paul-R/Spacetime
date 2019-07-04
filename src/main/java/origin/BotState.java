@@ -1,6 +1,6 @@
 package origin;
 
-public class ABotState {
+public abstract class BotState {
 
     //These will be considered our fundamental variables.
     private double
@@ -13,17 +13,9 @@ public class ABotState {
 
     //Derivative variables
 
-    //Secondary variables (Note: tsl = time since last)
-    int tslBulletFired;
-    int tslDeceleration;
-
-    //Dynamic variables (Essentially a mini cache, so that things do not need to be recalculated within one turn)
-    private double lastDist;
-    private int turnCalculatedLastDist;
-
     //Utility
-    private ABotState prevState;
-    private ABotState nextState;
+    private BotState prevState;
+    private BotState nextState;
 
     /*
         <> Initialization <>
@@ -38,8 +30,11 @@ public class ABotState {
     }
 
     //Modifiers
-    public void setNextState(ABotState nextState) {
+    public void setNextState(BotState nextState) {
         this.nextState = nextState;
+    }
+    public void setPrevState(BotState prevState) {
+        this.prevState = prevState;
     }
 
     //Retrieval
@@ -60,5 +55,12 @@ public class ABotState {
     }
     public int getTime() {
         return time;
+    }
+
+    public BotState getNextState() {
+        return nextState;
+    }
+    public BotState getPrevState() {
+        return prevState;
     }
 }

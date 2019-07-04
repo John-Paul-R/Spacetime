@@ -4,25 +4,16 @@ import java.awt.Graphics2D;
 
 import robocode.KeyEvent;
 
-public abstract class AComponentManager {
+public abstract class AComponentManager implements IManager {
 
     private String strCode;
     private Minigun self;
-    private Database data;
+    private DataManager data;
 
-    public void init(Minigun self, Database data)
+    public void init(Minigun self, DataManager data)
     {
         this.self = self;
         this.data = data;
     }
-
-    public abstract void roundStart();
-
-    public abstract void execute();
     
-    public abstract void keyControl(KeyEvent e);
-    
-    public abstract void paint(Graphics2D g, int[] paintOptions);
-    
-    public abstract void update();
 }

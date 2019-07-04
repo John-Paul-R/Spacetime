@@ -74,4 +74,8 @@ public class BotStateCollection<E> implements Collection<E> {
 
     }
 
+	public E getFromTime(int time) {
+		return null;
+	}
+
 }
