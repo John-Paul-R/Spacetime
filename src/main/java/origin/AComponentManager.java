@@ -1,9 +1,5 @@
 package origin;
 
-import java.awt.Graphics2D;
-
-import robocode.KeyEvent;
-
 public abstract class AComponentManager implements IManager {
 
     protected String strCode;

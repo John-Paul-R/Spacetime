@@ -45,5 +45,8 @@ public class Bot {
         EnemyState knnState = ((EnemyState) states.getKNN(inputWorldState.activeBots.get(name).getCurrentState(), 2).get(0)).getNextState();
         return knnState;
     }
+    public KDTree<EnemyState> getStateTree() {
+        return states;
+    }
 
 }

@@ -5,12 +5,11 @@ package origin;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
-
+import origin.world.*;
 import robocode.*;
 import robocode.util.Utils;
 public class Minigun extends AdvancedRobot {
@@ -118,6 +117,10 @@ public class Minigun extends AdvancedRobot {
     }
     public void onPaint(Graphics2D g) {
         gun.paint(g,null);
+        for (Bot b : data.getActiveBots().values())
+        {
+            b.getStateTree().paint(g, 0, 0);
+        }
         if (useKNN) {
             //predicted paths
             final int osize = 10;

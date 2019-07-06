@@ -3,7 +3,6 @@ package origin;
 import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
 import java.util.Collection;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.awt.Color;
@@ -212,7 +211,8 @@ public class GunManager extends AComponentManager {
             g.drawRect((int)(e.getX()-18), (int)(e.getY()-18), 36, 36);
         }
 
-
+        //TODO fix this vvv
+        /*
         g.setColor(Color.RED);
         predictedState.paintBots(g);
 
@@ -220,7 +220,7 @@ public class GunManager extends AComponentManager {
         for(WorldState state : ALLGunMode.PIF.predictedStates) {
             state.paintBots(g);
         }
-        
+        */
         
 
 

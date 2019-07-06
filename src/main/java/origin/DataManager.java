@@ -1,7 +1,6 @@
 package origin;
 
 import java.awt.Graphics2D;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import origin.world.Bot;

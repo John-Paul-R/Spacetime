@@ -1,6 +1,7 @@
 package origin;
 
 import java.util.List;
+import java.util.ArrayList;
 
 import robocode.ScannedRobotEvent;
 
@@ -74,23 +75,29 @@ public class EnemyState extends BotState implements KDElement {
         this.prevState = prevState;
     }
 
-
+    //TODO Implement this
+    @Override
+    public List<Double> getKDValues() {
+        List<Double> out = new ArrayList<Double>(4);
+        out.add(Math.random());
+        out.add(Math.random());
+        out.add(Math.random());
+        out.add(Math.random());
+        return out;
+    }
     @Override
     public double kdDistanceTo(KDElement otherElement) {
+        return 0;
+    }
+    @Override
+    public int getLastKDDist() {
         return 0;
     }
     @Override
     public int compareTo(KDElement otherElement) {
         return 0;
     }
-    @Override
-    public List<Double> getKDValues() {
-        return null;
-    }
-    @Override
-    public int getLastKDDist() {
-        return 0;
-    }
+    
 
 }
 

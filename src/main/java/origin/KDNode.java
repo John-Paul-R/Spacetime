@@ -11,9 +11,11 @@ import java.util.List;
 
 public class KDNode<E> {
 
+    private KDTree<E> tree;
+    private KDNode<E> parent;
     private int maxSize;
-    private int cSize;
     private int numDims;
+    private int depth;
     //TODO heuristic for determining dim to split on.
     //Unsure what to use atm. Will likely choose widest dimension for now to save processing time.
     //private List<IKDElement> dimVariance;
@@ -23,36 +25,50 @@ public class KDNode<E> {
 
     private boolean isLeaf;
     private int splitDim;
-    private KDNode<Double> upperNode;
-    private KDNode<Double> lowerNode;
+    private KDNode<E> upperNode;
+    private KDNode<E> lowerNode;
     private double boundValue; //ahhhh this is bad. Should have just designed this thing to work exclusively with double primitives from the start..
 
 
 
-    public KDNode(int size, int numDims) {
+    public KDNode(int size, int numDims, KDNode<E> parent, int depth, KDTree<E> tree) {
         this.maxSize = size;
-        this.cSize = 0;
+        //this.elements.size() = 0;
+        this.numDims = numDims;
 
         //dimVariance = new ArrayList<IKDElement>(numDims);
         upperBound = new ArrayList<Double>(numDims);
         lowerBound = new ArrayList<Double>(numDims);
+        for (int i=0; i<numDims; i++)
+        {
+            upperBound.add(i, -Double.MAX_VALUE/4D);
+            lowerBound.add(i, Double.MAX_VALUE/4D);
+        }
         elements   = new ArrayList<KDElement>(maxSize);
+
+        this.tree = tree;
+        this.depth = depth;
+        this.parent = parent;
 
         //These will be set/changed if/when this node splits:
         isLeaf = true;
         splitDim = -1;
         upperNode = null;
         lowerNode = null;
-        
     }
 
     public void add(KDElement element) {
+        
+            if (isLeaf && elements.size() >= maxSize)
+        {
+            split(getWidestDim());
+            System.out.println("Node split\n\n\n");
+            isLeaf = false;
+        }
+        
+        
         if (isLeaf) {//if node is not full
-            if (cSize >= maxSize)
-            {
-                split(getWidestDim());
-                sendToChildNode(element);
-            }
+            
             elements.add(element);
 
             List<Double> vals = element.getKDValues();
@@ -64,9 +80,16 @@ public class KDNode<E> {
                     lowerBound.set(i, vals.get(i));
                 }
             }
+            System.out.println("Added Element to "+ this.toString() +". elements.size() " + elements.size() + "\n\n\n");
+        
         } else {
+            try {
             sendToChildNode(element);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        }
+        
     }
     
     private void sendToChildNode(KDElement element) {
@@ -78,17 +101,23 @@ public class KDNode<E> {
     }
 
     private void split(int dimensionIndex) {
-
+        this.splitDim = dimensionIndex;
         elements.sort(new Comparator<KDElement>() {
             public int compare(KDElement e1, KDElement e2)
             {
+                if (e1.getKDValues() == null) {
+                    return (e2.getKDValues() == null) ? 0 : 1;
+                } else if (e2.getKDValues() == null) {
+                    return -1;
+                }
+
                 return  ((int)e2.getKDValues().get(dimensionIndex).doubleValue()
                         -(int)e1.getKDValues().get(dimensionIndex).doubleValue());
             }
         });
 
-        this.upperNode = new KDNode<Double>(maxSize, numDims);
-        this.lowerNode = new KDNode<Double>(maxSize, numDims);
+        this.upperNode = new KDNode<E>(maxSize, numDims, this, depth+1, tree);
+        this.lowerNode = new KDNode<E>(maxSize, numDims, this, depth+1, tree);
         
         for (int i = 0; i < maxSize; i++)
         {
@@ -104,19 +133,24 @@ public class KDNode<E> {
         elements = null;
         upperBound = null;
         lowerBound = null;
+
+        tree.onSplit(upperNode, lowerNode, depth+1);
     }
 
     private int getWidestDim() {
         int widestIndex = -1;
         double widestWidth = -1;
         for (int i = 0; i < numDims; i++) {
-            double cWidth = upperBound.get(i).doubleValue()-lowerBound.get(i).doubleValue();
+            double cWidth = Math.abs(upperBound.get(i).doubleValue()-lowerBound.get(i).doubleValue());
+            System.out.println(cWidth);
             if (cWidth > widestWidth)
             {
                 widestIndex = i;
                 widestWidth = cWidth;
             }
+            
         }
+        System.out.println(widestIndex);
         return widestIndex;
     }
 
@@ -132,7 +166,7 @@ public class KDNode<E> {
             for (int i=0; i < elements.size(); i++) {
                 KDElement e = elements.get(i);
                 double cDist = e.kdDistanceTo(target); // TODO This changes the value of 'lastDist' within the KDElement object
-                if (e != target){
+                if (e != target) {
                     if (maxMinIndex == -1 && cDist <= maxMinDist) {
                         minDists[cIndex] = cDist;
                         minElements.add(cIndex, e);
@@ -142,7 +176,7 @@ public class KDNode<E> {
                         minElements.set(maxMinIndex, e);
                     }
     
-                    if (cIndex+1 >= cSize)
+                    if (cIndex+1 >= k)
                     {
                         minElements.sort(new Comparator<KDElement>() {
                         
@@ -167,5 +201,22 @@ public class KDNode<E> {
         }
 
         return out;
+    }
+
+    int size() {
+        int out = -1;
+        if (isLeaf) {
+            out = elements.size();
+        }
+        return out;
+    }
+    KDNode<E> getUpper() {
+        return upperNode;
+    }
+    KDNode<E> getLower() {
+        return lowerNode;
+    }
+    KDNode<E> getParent() {
+        return parent;
     }
 }

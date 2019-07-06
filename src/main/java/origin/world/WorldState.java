@@ -4,17 +4,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
-import java.util.List;
 import java.util.Map.Entry;
-import java.util.ArrayList;
 
-import origin.BotState;
-import origin.DataManager;
-import origin.EnemyState;
-import origin.SelfState;
-import robocode.ScannedRobotEvent;
-
-import java.awt.Color;
+import origin.*;
 
 public class WorldState implements Predictable<WorldState> {
 
@@ -52,12 +44,12 @@ public class WorldState implements Predictable<WorldState> {
         HashMap<String, BotState> out = new HashMap<String, BotState>();
         for (Entry<String, BotState> en : botStates.entrySet()) {
             BotState e = en.getValue();
-            System.out.println(e);
+            //System.out.println(e);
             if (Point2D.distance(x, y, e.getX(), e.getY()) <= range) {
                 out.put(en.getKey(), e);
             }
         }
-        System.out.println("Completed 'getInRange'");
+        //System.out.println("Completed 'getInRange'");
         return out;
     }
 
