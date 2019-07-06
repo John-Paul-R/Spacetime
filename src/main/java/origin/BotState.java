@@ -14,8 +14,7 @@ public abstract class BotState {
     //Derivative variables
 
     //Utility
-    private BotState prevState;
-    private BotState nextState;
+
 
     /*
         <> Initialization <>
@@ -30,12 +29,6 @@ public abstract class BotState {
     }
 
     //Modifiers
-    public void setNextState(BotState nextState) {
-        this.nextState = nextState;
-    }
-    public void setPrevState(BotState prevState) {
-        this.prevState = prevState;
-    }
 
     //Retrieval
     public double getX() {
@@ -57,10 +50,5 @@ public abstract class BotState {
         return time;
     }
 
-    public BotState getNextState() {
-        return nextState;
-    }
-    public BotState getPrevState() {
-        return prevState;
-    }
+
 }

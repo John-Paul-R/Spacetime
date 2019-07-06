@@ -4,6 +4,7 @@ package origin.world;
 */
 
 import java.util.LinkedList;
+import java.util.List;
 
 import origin.KDTree;
 import origin.RobotSettings;
@@ -21,8 +22,9 @@ public class Bot {
     private LinkedList<EnemyState> predictedStates;
     private EnemyState LatestPredictedState;
 
-    public Bot() {
+    public Bot(String name) {
         states = new KDTree<EnemyState>(RobotSettings.valueOf(Settings.KD_BIN_SIZE), RobotSettings.valueOf(Settings.NUM_KD_DIMS));
+        this.name = name;
     }
     
     public void addState(EnemyState state) {
@@ -40,7 +42,8 @@ public class Bot {
     }
 
     public EnemyState predictNextState(WorldState inputWorldState) {
-        return (EnemyState) states.getKNN(inputWorldState.activeBots.get(name).getCurrentState(), 2).get(0);
+        EnemyState knnState = ((EnemyState) states.getKNN(inputWorldState.activeBots.get(name).getCurrentState(), 2).get(0)).getNextState();
+        return knnState;
     }
 
 }

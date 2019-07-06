@@ -14,9 +14,10 @@ public class MoveManager extends AComponentManager {
     }
 
     @Override
-    public void roundStart() {
-
+    public void roundStart(Minigun self) {
+        super.roundStart(self);
     }
+
 
     @Override
     public void execute() {

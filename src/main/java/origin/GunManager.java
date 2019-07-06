@@ -5,10 +5,13 @@ import java.awt.geom.Point2D;
 import java.util.Collection;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.awt.Color;
 
 import robocode.KeyEvent;
 import robocode.Rules;
 import origin.world.*;
+
 
 public class GunManager extends AComponentManager {
 
@@ -57,9 +60,11 @@ public class GunManager extends AComponentManager {
     }
     abstract static class ALLGunMode {
         static final class PIF {
+            static LinkedList<WorldState> predictedStates;
             //NOTE, This applies the prediction to EVERY BOT in the world
             //ADDITIONALLY, it is up to the state to provide support for the various prediction methods (in the form of a predictNextState(PredictionMethod m) method).
             static WorldState predictState(WorldState state, PredictionMethod method, PredictionSynthesizer predictor, Point2D.Double fireLocation, double bulletVelocity) {
+                predictedStates = new LinkedList<WorldState>();
                 //Point2D.Double predictedLocation = null;
                 Point2D.Double myLocation = fireLocation;
                 WorldState cState = state;
@@ -68,6 +73,7 @@ public class GunManager extends AComponentManager {
                 while (predictor.isIncomplete()) {
                     predictor.updateWorkingState(timeCount, myLocation, bulletVelocity, cState);
                     cState = cState.predictNextState();
+                    predictedStates.add(cState);
                     timeCount++;
                 }
                 
@@ -85,10 +91,11 @@ public class GunManager extends AComponentManager {
 
     }
 
-	@Override
-	public void roundStart() {
-		
-	}
+    @Override
+    public void roundStart(Minigun self) {
+        super.roundStart(self);
+    }
+
 
 	@Override
 	public void update() {
@@ -108,6 +115,7 @@ public class GunManager extends AComponentManager {
 	@Override
 	public void execute() {
         predictedState = ALLGunMode.PIF.predictState(new WorldState(data.getActiveBots(), true), PredictionMethod.KNN_PIF, new PredictionSynthesizer(), new Point2D.Double(self.getX(), self.getY()), Rules.getBulletSpeed(2.1));
+        System.out.println("Finished Prediction\n");
         //BEGIN Gun
         //Todo virtual guns
         /*
@@ -192,7 +200,30 @@ public class GunManager extends AComponentManager {
 
 	@Override
 	public void paint(Graphics2D g, int[] paintOptions) {
-		predictedState.paintBots(g);
+        g.setColor(new Color(0,0,255));
+        Collection<Bot> bots = data.getActiveBots().values();
+        for (Bot b : bots) {
+            g.drawOval((int)(b.getCurrentState().getX()-18), (int)(b.getCurrentState().getY()-18), 36, 36);
+        }
+
+        g.setColor(new Color(255,0,255));
+        WorldState cState = new WorldState(data.getActiveBots(), true);
+        for (BotState e : cState.getBotStates()) {
+            g.drawRect((int)(e.getX()-18), (int)(e.getY()-18), 36, 36);
+        }
+
+
+        g.setColor(Color.RED);
+        predictedState.paintBots(g);
+
+        g.setColor(new Color(255,255,255,100));
+        for(WorldState state : ALLGunMode.PIF.predictedStates) {
+            state.paintBots(g);
+        }
+        
+        
+
+
 	}
 
     protected void setStrCode() {

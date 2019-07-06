@@ -25,10 +25,11 @@ public class DataManager {
         disabledBots = new HashMap<String, Bot>();
     }
 
-    public void roundStart() {
+    public void roundStart(Minigun self) {
         //add all bots to active map and remove all bots from disabled list
         activeBots = getAllBots();
         disabledBots.clear();
+        this.self = self;
     }
 
     public HashMap<String, Bot> getActiveBots() {
@@ -47,9 +48,14 @@ public class DataManager {
 
     public void onScannedRobot(ScannedRobotEvent e) {
         if (!activeBots.containsKey(e.getName())) {
-            activeBots.put(e.getName(), new Bot());
+            activeBots.put(e.getName(), new Bot(e.getName()));
         }
-        activeBots.get(e.getName()).addState(new EnemyState(e, self));
+        EnemyState prevState = activeBots.get(e.getName()).getCurrentState();
+        EnemyState newState = new EnemyState(e, self);
+        activeBots.get(e.getName()).addState(newState);
+        prevState.setNextState(newState);
+        newState.setPrevState(prevState);
+
     }
 
     public void update() {

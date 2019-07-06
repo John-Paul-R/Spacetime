@@ -43,6 +43,7 @@ public class WorldState implements Predictable<WorldState> {
     public WorldState(int time, HashMap<String, BotState> botStates, HashMap<String, Bot> activeBots) {
         this.time = time;
         this.botStates = botStates;
+        this.activeBots = activeBots;
     }
 
     public HashMap<String, BotState> getInRange(double range, Point2D.Double location) {
@@ -74,7 +75,7 @@ public class WorldState implements Predictable<WorldState> {
         HashMap<String, BotState> newBotStates = new HashMap<String, BotState>(); //BotStates that we are about to predict
         HashMap<String, BotState> botStates = this.botStates; //Current BotStates (stored globally in this WorldState)
         int cTime = this.time;
-        bots.putAll(enemies);//todo add self states to predicitons
+        //bots.putAll(enemies);//todo add self states to predicitons
         for ( HashMap.Entry<String, Bot> e : enemies.entrySet()) {
             String name = e.getKey();
             Bot bot = e.getValue();
@@ -91,7 +92,6 @@ public class WorldState implements Predictable<WorldState> {
     }
 
     public void paintBots(Graphics2D g) {
-        g.setColor(Color.RED);
         for (BotState e : botStates.values())
         {
             g.drawRect((int)(e.getX()-18), (int)(e.getY()-18), 36, 36);

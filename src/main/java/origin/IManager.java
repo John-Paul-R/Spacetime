@@ -6,7 +6,7 @@ import robocode.KeyEvent;
 
 interface IManager {
 
-    public abstract void roundStart();
+    public abstract void roundStart(Minigun self);
 
     public abstract void update();
 

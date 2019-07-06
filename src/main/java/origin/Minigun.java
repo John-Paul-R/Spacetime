@@ -57,10 +57,10 @@ public class Minigun extends AdvancedRobot {
     }
 
     private void roundStart() {
-        data.roundStart();
-        radar.roundStart();
-        move.roundStart();
-        gun.roundStart();
+        data.roundStart(this);
+        radar.roundStart(this);
+        move.roundStart(this);
+        gun.roundStart(this);
     }
 
     public void run() {
@@ -68,7 +68,7 @@ public class Minigun extends AdvancedRobot {
         if (getRoundNum() == 0) {
             this.init();
         }
-        
+
         //Each New Round
         this.roundStart();
 
@@ -117,6 +117,7 @@ public class Minigun extends AdvancedRobot {
         }
     }
     public void onPaint(Graphics2D g) {
+        gun.paint(g,null);
         if (useKNN) {
             //predicted paths
             final int osize = 10;

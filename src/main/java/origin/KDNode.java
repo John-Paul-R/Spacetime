@@ -132,27 +132,31 @@ public class KDNode<E> {
             for (int i=0; i < elements.size(); i++) {
                 KDElement e = elements.get(i);
                 double cDist = e.kdDistanceTo(target); // TODO This changes the value of 'lastDist' within the KDElement object
-                if (maxMinIndex == -1 && cDist <= maxMinDist) {
-                    minDists[cIndex] = cDist;
-                    minElements.add(cIndex, e);
-                    cIndex++;
-                } else if (maxMinIndex != -1 && cDist <= maxMinDist) {
-                    minDists[maxMinIndex] = cDist;
-                    minElements.set(maxMinIndex, e);
+                if (e != target){
+                    if (maxMinIndex == -1 && cDist <= maxMinDist) {
+                        minDists[cIndex] = cDist;
+                        minElements.add(cIndex, e);
+                        cIndex++;
+                    } else if (maxMinIndex != -1 && cDist <= maxMinDist) {
+                        minDists[maxMinIndex] = cDist;
+                        minElements.set(maxMinIndex, e);
+                    }
+    
+                    if (cIndex+1 >= cSize)
+                    {
+                        minElements.sort(new Comparator<KDElement>() {
+                        
+                            public int compare(KDElement e1, KDElement e2)
+                            {
+                                return (int)(e2.getLastKDDist() - e1.getLastKDDist());
+                            }
+                        });
+                        maxMinIndex = minElements.size()-1;
+                        maxMinDist = minElements.get(maxMinIndex).getLastKDDist();
+                    }
                 }
-
-                if (cIndex+1 == cSize)
-                {
-                    minElements.sort(new Comparator<KDElement>() {
-                    
-                        public int compare(KDElement e1, KDElement e2)
-                        {
-                            return (int)(e2.getLastKDDist() - e1.getLastKDDist());
-                        }
-                    });
-                }
-                out = minElements;
             }
+            out = minElements;
         } else {
             //traverse kd tree
             if (target.getKDValues().get(splitDim).doubleValue() > this.boundValue) {

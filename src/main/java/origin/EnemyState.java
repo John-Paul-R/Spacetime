@@ -21,6 +21,10 @@ public class EnemyState extends BotState implements KDElement {
     private double lastDist;
     private int turnCalculatedLastDist;
 
+    //Utility
+    protected EnemyState prevState;
+    protected EnemyState nextState;
+
     public EnemyState(double x, double y, double energy, double heading, double velocity, long time) {
         super.init(x, y, energy, heading, velocity, time);
     }
@@ -55,6 +59,21 @@ public class EnemyState extends BotState implements KDElement {
     public double getLastDist() { //TODO update this so that it checks if dist needs to be updated
         return lastDist;
     }
+
+    public EnemyState getNextState() {
+        return nextState;
+    }
+    public EnemyState getPrevState() {
+        return prevState;
+    }
+
+    public void setNextState(EnemyState nextState) {
+        this.nextState = nextState;
+    }
+    public void setPrevState(EnemyState prevState) {
+        this.prevState = prevState;
+    }
+
 
     @Override
     public double kdDistanceTo(KDElement otherElement) {

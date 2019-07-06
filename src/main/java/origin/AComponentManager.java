@@ -15,6 +15,8 @@ public abstract class AComponentManager implements IManager {
         self = s;
         data = d;
     }
-    
+    public void roundStart(Minigun self) {
+        this.self = self;
+    }
     protected abstract void setStrCode();
 }
