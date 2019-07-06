@@ -34,6 +34,7 @@ public class Minigun extends AdvancedRobot {
         move;
 
     private void init() {
+        RobotSettings.init();
         setAdjustGunForRobotTurn(true);
 		setAdjustRadarForGunTurn(true);
         setTurnRadarRightRadians(4*Math.PI);
@@ -79,6 +80,7 @@ public class Minigun extends AdvancedRobot {
             //This also occurs in the onScannedRobot method, as robots move AFTER execute()
             //(cant put this right after execute() however, because robots are paused until its completion)
             this.update();
+
             //Update Components (Change modes if needed)
             data.update();
             radar.update();
@@ -88,84 +90,12 @@ public class Minigun extends AdvancedRobot {
             //execute all
             radar.execute();
             move.execute();
-            gun.execute();
+            if (getTime() > 100)
+                gun.execute();
 
-            EData c = null;
-            if (el.size()>100) {
-                useKNN = true;
-            }
-            if (el.size()>0)
-                c=el.getLast();
-            if (el.size()>0 && !useKNN) {
-                //System.out.println("["+getTime()+"] Firing with HOT");
-                    //p=el.get(el.size()-2);
-                    double a=Utils.normalRelativeAngle(c.ab-getGunHeadingRadians());
-                    setTurnGunRightRadians(a);
-                setFire(2.1);
-            } else if (useKNN) {//Begin using knn gun
-                //System.out.println("["+getTime()+"] Firing with KNN");
-                long t=1;
-                EData cState = c;
-                ArrayList<EData> cStates = null;
-                p = new double[100][2];
-                while (Rules.getBulletSpeed(2.1)*t < Point2D.distance(cState.x, cState.y, getX(), getY())) //predict into the future far enough (for a given bullet speed)
-                {
-                    //try {
-                    ArrayList<EData> ncStates = knn(_k, cState);
-                    int i = 0;
-                    int nextIndex = Integer.MAX_VALUE;
-                    while (nextIndex >= el.size())
-                    {
-                        nextIndex = el.indexOf(ncStates.get(i))+1;
-                    }
-                    {
-                        
-                        if (ncStates != null)
-                        {
-                            cStates = ncStates;
-                        }
-                        cState = new EData(cState, ncStates.get(0), el.get(nextIndex));
-                        xx = cState.x;
-                        yy = cState.y;
-                        //System.out.println("TEST");
-                        if (t <= 100) {
-                            p[(int)t-1] = new double[] {xx, yy};
-                        }
-                    }
-                        
-                        //cState = ;
-                    //} catch (Exception e)
-                    //{
-                    //    System.out.println("["+getTime()+"] Hit list time boundary.");
-                    //}
-                    
-                    t++;
-                    //System.out.println(t);
 
-                }
-                //cStates = knn(_k, cState);
-                
-                for (int i=0; i < _k; i++)
-                {
-                    if (cStates != null)
-                    {
-                        EData cS = null;
-                        EData c1 = cStates.get(i);
-                        int nIndex = el.indexOf(c1)+1;
-                        if (nIndex < el.size())
-                        {
-                            cS = new EData(cState, c1, el.get(el.indexOf(c1)+1));
-                            px[i]=cS.x;
-                            py[i]=cS.y;
-                        }
-                        
-                        //System.out.println("test");
-                    }
-                }
-                double a=Utils.normalRelativeAngle(Math.atan2(cState.x-getX(), cState.y-getY())-getGunHeadingRadians());
-                setTurnGunRightRadians(a);
-            }
-            //System.out.println(c);
+
+            //Radar failsafe
             if (!scanned)
             {
                 System.out.println("Not scanned on turn " + getTime() +"!");
@@ -258,6 +188,7 @@ public class Minigun extends AdvancedRobot {
 
     public void onScannedRobot(ScannedRobotEvent e) {
         this.update();
+        data.onScannedRobot(e);
         if(el.size()>0) {
             el.add(new EData(e, el.getLast(), this));
         } else {

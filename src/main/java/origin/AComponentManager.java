@@ -6,14 +6,15 @@ import robocode.KeyEvent;
 
 public abstract class AComponentManager implements IManager {
 
-    private String strCode;
-    private Minigun self;
-    private DataManager data;
+    protected String strCode;
+    protected Minigun self;
+    protected DataManager data;
 
-    public void init(Minigun self, DataManager data)
+    public void init(Minigun s, DataManager d)
     {
-        this.self = self;
-        this.data = data;
+        self = s;
+        data = d;
     }
     
+    protected abstract void setStrCode();
 }

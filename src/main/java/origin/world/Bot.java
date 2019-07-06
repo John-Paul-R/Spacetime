@@ -5,35 +5,42 @@ package origin.world;
 
 import java.util.LinkedList;
 
-public class Bot<T> implements IWorldComponent<T> {
+import origin.KDTree;
+import origin.RobotSettings;
+import origin.RobotSettings.Settings;
+import origin.EnemyState;
+import origin.KDElement;
 
-    private BotStateCollection<T> states;
-    private T cState;
-    private T pState;
+public class Bot {
 
+    private KDTree<EnemyState> states;
+    private EnemyState cState;
+    private EnemyState pState;
+    private String name;
     //List of the latest predicted states
-    private LinkedList<T> predictedStates;
-    private T LatestPredictedState;
+    private LinkedList<EnemyState> predictedStates;
+    private EnemyState LatestPredictedState;
 
     public Bot() {
-        states = new BotStateCollection<T>();
+        states = new KDTree<EnemyState>(RobotSettings.valueOf(Settings.KD_BIN_SIZE), RobotSettings.valueOf(Settings.NUM_KD_DIMS));
     }
     
-    public void addState(T state) {
+    public void addState(EnemyState state) {
         states.add(state);
+        cState = state;
     }
-    public T getState(int time) { //TODO see if there is a way to do this in better than O(n) time
+    /*public T getState(int time) { //TODO see if there is a way to do this in better than O(n) time
         return states.getFromTime(time);
-    }
-    public T getCurrentState() {
+    }*/
+    public EnemyState getCurrentState() {
         return cState;
     }
-    public T getPreviousState() {
+    public EnemyState getPreviousState() {
         return pState;
     }
-    @Override
-    public T predictNextState(WorldState inputWorldState) {
-        return null;
+
+    public EnemyState predictNextState(WorldState inputWorldState) {
+        return (EnemyState) states.getKNN(inputWorldState.activeBots.get(name).getCurrentState(), 2).get(0);
     }
 
 }

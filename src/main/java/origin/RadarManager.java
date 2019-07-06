@@ -35,4 +35,8 @@ class RadarManager extends AComponentManager {
 
     }
 
+    @Override
+    protected void setStrCode() {
+        strCode = "RADAR";
+    }
 }

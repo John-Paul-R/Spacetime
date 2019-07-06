@@ -45,3 +45,19 @@ The way I think I want to do this is to create a kdtree for all of the State obj
 
 
 ### 1v1: what if we track how a bot *changes* how it moves once it is hit (or bullet hit bullet). Similar to displacement vectors w/ knn search, but find take the delta of the delta for a given situation.  How they have changed the way they react to a situation over the course of the game? We can extrapolate from this and potentially predict how they will adapt to being hit.
+
+## Refactor
+Create a list/layout of all components of the robot. Make a dedicated function or object for all of them, instead of scattered code all in one file.
+
+RobotBase (getX() overrides, run method, etc.)
+  * DataManager (inherited by all manager classes)
+  * GunManager
+    * 
+  * MoveManager
+    * 
+
+  * RadarManager
+    * 
+
+### Possible new approach to KNN PIF
+Run the PIF sequence once (via some WorldManager class). The classes that need to take information from this can do so. (ex GunManager can take each state and perform its own calculations on it)

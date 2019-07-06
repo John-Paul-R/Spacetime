@@ -1,8 +1,10 @@
 package origin;
 
+import java.util.List;
+
 import robocode.ScannedRobotEvent;
 
-public class EnemyState extends BotState {
+public class EnemyState extends BotState implements KDElement {
 
     private double
         bearing, //relative to our bot, -pi to pi
@@ -52,6 +54,23 @@ public class EnemyState extends BotState {
     }
     public double getLastDist() { //TODO update this so that it checks if dist needs to be updated
         return lastDist;
+    }
+
+    @Override
+    public double kdDistanceTo(KDElement otherElement) {
+        return 0;
+    }
+    @Override
+    public int compareTo(KDElement otherElement) {
+        return 0;
+    }
+    @Override
+    public List<Double> getKDValues() {
+        return null;
+    }
+    @Override
+    public int getLastKDDist() {
+        return 0;
     }
 
 }

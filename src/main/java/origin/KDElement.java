@@ -2,13 +2,14 @@ package origin;
 
 import java.util.List;
 
-public interface KDElement<E extends Number>  {
+public interface KDElement {
 
-    public List<E> getKDValues();
+    public List<Double> getKDValues();
 
-    public double kdDistanceTo(KDElement<E> otherElement); //ahhhhh should have made this entire thing type 'double' from the start...
+    public double kdDistanceTo(KDElement otherElement); //ahhhhh should have made this entire thing type 'double' from the start...
 
-    public int compareTo(KDElement<E> otherElement);
+    public int compareTo(KDElement otherElement);
 
-	public int getLastKDDist();
+    public int getLastKDDist();
+    
 }

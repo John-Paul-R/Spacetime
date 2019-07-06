@@ -8,27 +8,27 @@ import java.util.List;
  */
 
 //TODO Rebalance tree at the start of each round?
-public class KDTree<E extends Number> {
+public class KDTree<E> {
 
     private int binSize;
     private int numDims;
     private KDNode<E> root;
 
-    public KDTree(int binSize, int numDims) throws Exception {
+    public KDTree(int binSize, int numDims) {
         if (binSize >= 1) {
             this.binSize = binSize;
             this.numDims = numDims;
         } else {
-            throw new Exception("KDTree bin size and number of dimensions must both be greater than or equal to one.");
+            System.out.println("KDTree bin size and number of dimensions must both be greater than or equal to one.");
         }
         this.root = new KDNode<E>(binSize, numDims);
     }
 
-    public void add(KDElement<E> element) {
+    public void add(KDElement element) {
         root.add(element);
     }
 
-    public List<KDElement<E>> getKNN(KDElement<E> target, int k) {
+    public List<KDElement> getKNN(KDElement target, int k) {
         return root.getKNN(target, k);
     }
 

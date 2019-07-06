@@ -37,4 +37,8 @@ public class MoveManager extends AComponentManager {
     public void update() {
 
     }
+    @Override
+    protected void setStrCode() {
+        strCode = "MOVE";
+    }
 }

@@ -6,25 +6,25 @@ import java.util.List;
 
 /**
  *
- * @param <E> The type of the elements to be held in this node.
+ * @param <Double> The type of the elements to be held in this node.
  */
 
-public class KDNode<E extends Number> {
+public class KDNode<E> {
 
     private int maxSize;
     private int cSize;
     private int numDims;
     //TODO heuristic for determining dim to split on.
     //Unsure what to use atm. Will likely choose widest dimension for now to save processing time.
-    //private List<IKDElement<E>> dimVariance;
-    private List<E> upperBound;
-    private List<E> lowerBound;
-    private List<KDElement<E>> elements;
+    //private List<IKDElement> dimVariance;
+    private List<Double> upperBound;
+    private List<Double> lowerBound;
+    private List<KDElement> elements;
 
     private boolean isLeaf;
     private int splitDim;
-    private KDNode<E> upperNode;
-    private KDNode<E> lowerNode;
+    private KDNode<Double> upperNode;
+    private KDNode<Double> lowerNode;
     private double boundValue; //ahhhh this is bad. Should have just designed this thing to work exclusively with double primitives from the start..
 
 
@@ -33,10 +33,10 @@ public class KDNode<E extends Number> {
         this.maxSize = size;
         this.cSize = 0;
 
-        //dimVariance = new ArrayList<IKDElement<E>>(numDims);
-        upperBound = new ArrayList<E>(numDims);
-        lowerBound = new ArrayList<E>(numDims);
-        elements   = new ArrayList<KDElement<E>>(maxSize);
+        //dimVariance = new ArrayList<IKDElement>(numDims);
+        upperBound = new ArrayList<Double>(numDims);
+        lowerBound = new ArrayList<Double>(numDims);
+        elements   = new ArrayList<KDElement>(maxSize);
 
         //These will be set/changed if/when this node splits:
         isLeaf = true;
@@ -46,16 +46,16 @@ public class KDNode<E extends Number> {
         
     }
 
-    public void add(KDElement<E> element) {
+    public void add(KDElement element) {
         if (isLeaf) {//if node is not full
-            if (cSize < maxSize)
+            if (cSize >= maxSize)
             {
                 split(getWidestDim());
                 sendToChildNode(element);
             }
             elements.add(element);
 
-            List<E> vals = element.getKDValues();
+            List<Double> vals = element.getKDValues();
             //Iterate through dimensions and update node bounds as needed:
             for (int i = 0; i < numDims; i++) {
                 if (vals.get(i).doubleValue() > upperBound.get(i).doubleValue()) {//if greater than upper bound
@@ -69,7 +69,7 @@ public class KDNode<E extends Number> {
         }
     }
     
-    private void sendToChildNode(KDElement<E> element) {
+    private void sendToChildNode(KDElement element) {
         if (element.getKDValues().get(splitDim).doubleValue() > this.boundValue) {
             upperNode.add(element);
         } else {
@@ -79,16 +79,16 @@ public class KDNode<E extends Number> {
 
     private void split(int dimensionIndex) {
 
-        elements.sort(new Comparator<KDElement<E>>() {
-            public int compare(KDElement<E> e1, KDElement<E> e2)
+        elements.sort(new Comparator<KDElement>() {
+            public int compare(KDElement e1, KDElement e2)
             {
                 return  ((int)e2.getKDValues().get(dimensionIndex).doubleValue()
                         -(int)e1.getKDValues().get(dimensionIndex).doubleValue());
             }
         });
 
-        this.upperNode = new KDNode<E>(maxSize, numDims);
-        this.lowerNode = new KDNode<E>(maxSize, numDims);
+        this.upperNode = new KDNode<Double>(maxSize, numDims);
+        this.lowerNode = new KDNode<Double>(maxSize, numDims);
         
         for (int i = 0; i < maxSize; i++)
         {
@@ -120,17 +120,17 @@ public class KDNode<E extends Number> {
         return widestIndex;
     }
 
-    public List<KDElement<E>> getKNN(KDElement<E> target, int k) {
-        List<KDElement<E>> out = null;
+    public List<KDElement> getKNN(KDElement target, int k) {
+        List<KDElement> out = null;
         if (isLeaf) {
             //iterate through and test distances to find nearest
             double[] minDists = new double[k];
-            ArrayList<KDElement<E>> minElements = new ArrayList<KDElement<E>>(k);
+            ArrayList<KDElement> minElements = new ArrayList<KDElement>(k);
             double  maxMinDist  = Double.MAX_VALUE;
             int     maxMinIndex = -1;
             int cIndex = 0;
             for (int i=0; i < elements.size(); i++) {
-                KDElement<E> e = elements.get(i);
+                KDElement e = elements.get(i);
                 double cDist = e.kdDistanceTo(target); // TODO This changes the value of 'lastDist' within the KDElement object
                 if (maxMinIndex == -1 && cDist <= maxMinDist) {
                     minDists[cIndex] = cDist;
@@ -143,9 +143,9 @@ public class KDNode<E extends Number> {
 
                 if (cIndex+1 == cSize)
                 {
-                    minElements.sort(new Comparator<KDElement<E>>() {
+                    minElements.sort(new Comparator<KDElement>() {
                     
-                        public int compare(KDElement<E> e1, KDElement<E> e2)
+                        public int compare(KDElement e1, KDElement e2)
                         {
                             return (int)(e2.getLastKDDist() - e1.getLastKDDist());
                         }
