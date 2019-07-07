@@ -37,7 +37,7 @@ public final class RobotSettings {
         settings.put(Settings.  GUN_MODE_OVERRIDE   , -1  );
         settings.put(Settings.  MOVE_MODE_OVERRIDE  , -1  );
         settings.put(Settings.  NUM_KD_DIMS         ,  4  );
-        settings.put(Settings.  KD_BIN_SIZE         ,  20 );
+        settings.put(Settings.  KD_BIN_SIZE         ,  50 );
     }
     public static int valueOf(Settings setting) {
         return settings.get(setting);

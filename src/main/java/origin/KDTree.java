@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.LinkedList;
 import java.awt.Graphics2D;
 import java.awt.Color;
-
+import java.awt.geom.Point2D;
 /**
  *
  * @param <E> The type of the elements to be put in this tree.
@@ -49,47 +49,62 @@ public class KDTree<E> {
     public void paint(Graphics2D g, int x, int y)
     {
         g.setColor(new Color(255, 255, 255, 55));
-        paintNode(g, x, y, root, 0, 0);
+        paintNode(g, x, y, root, 0, 0, 0, 0);
         
     }
 
     private int rowOffset(int depth, int hSpacing, int nodeW) {
         return depth*(hSpacing + nodeW)/2;
     }
-    int paintNode(Graphics2D g, int x, int y, KDNode<E> n, int depth, int hLoc) {
-        final int hSpacing = 18;
-        final int vSpacing = 18;
-        final int nodeH = 40;
-        final int nodeW = 36;
+    void paintNode(Graphics2D g, int x, int y, KDNode<E> n, int depth, int hLoc, double parentX, double parentY) {
         
-        int minX, maxX;
+        Point2D.Double location = drawNode(g, x, y, n, depth, hLoc, parentX, parentY);
+
         if (n.getLower() != null) {
             g.setColor(new Color(255, 0, 0, 55));
-            paintNode(g,x,y,n.getLower(), depth+1, hLoc);
+            paintNode(g,x,y,n.getLower(), depth+1, hLoc*2, location.getX(), location.getY());
 
+        } else {
+            drawNode(g,x,y,n.getLower(), depth+1, hLoc*2, location.getX(), location.getY());
         }
         if (n.getUpper() != null) {
             g.setColor(new Color(0, 255, 0, 55));
-            paintNode(g,x,y,n.getUpper(), depth+1, hLoc+maxDepth/(depth+1));
+            paintNode(g,x,y,n.getUpper(), depth+1, hLoc*2+1, location.getX(), location.getY());//hLoc+(maxDepth)/(depth+1));
 
+        } else {
+            drawNode(g,x,y,n.getUpper(), depth+1, hLoc*2+1, location.getX(), location.getY());
         }
+
         
         
+    }
+
+    Point2D.Double drawNode(Graphics2D g, int x, int y, KDNode<E> n, int depth, int hLoc, double parentX, double parentY) {
+        final int hSpacing = 18/4;
+        final int vSpacing = 18/4;
+        final int nodeH = 40/4;
+        final int nodeW = 36/4;
 
         int abs_hLoc = hLoc*(nodeW+hSpacing);
+        int centerOffset = ((int)Math.pow(2, depth)*(nodeW+hSpacing)/2);
+        int xLoc = x+abs_hLoc -centerOffset;
+        int yLoc = y+(nodeH+vSpacing)*depth;
         if (n != null)
         {
             if (n.size() == -1) {
-                g.fillRect(x+abs_hLoc  +nodeW/4,  y+(nodeH+vSpacing)*depth+nodeH/4, nodeW/2, nodeH/2);
+                g.setColor(new Color(255, 255, 0, 55));
+                g.fillRect(xLoc +nodeW/4,  yLoc +nodeH/4, nodeW/2, nodeH/2);
+                g.drawLine(xLoc+nodeW/2, yLoc+nodeH/4, (int)parentX+nodeW/2, (int)parentY+nodeH/4*3);
             } else {
-                g.drawRect(x+abs_hLoc , y+(nodeH+vSpacing)*depth, nodeW, nodeH);
-                g.fillRect(x+abs_hLoc , y+(nodeH+vSpacing)*depth, nodeW, nodeH/binSize*n.size());
-                //g.drawLine(x+abs_hLoc , y+(nodeH+vSpacing)*depth, x+abs_hLoc+nodeW/2-((nodeW+hSpacing))*(hLoc%2==0 ? 0 : 1),  y+(nodeH+vSpacing)*(depth-1)+nodeH/2);
+                g.drawRect(xLoc, yLoc, nodeW, nodeH);
+                g.fillRect(xLoc, yLoc, nodeW, (int)((double)nodeH/(double)binSize*n.size()));
+                g.drawLine(xLoc+nodeW/2, yLoc, (int)parentX+nodeW/2, (int)parentY+nodeH/4*3);
+                //g.drawLine(x+abs_hLoc , yLoc, x+abs_hLoc+nodeW/2-((nodeW+hSpacing))*(hLoc%2==0 ? 0 : 1),  y+(nodeH+vSpacing)*(depth-1)+nodeH/2);
             }
             System.out.println(n.size());
-        }
-
-        return abs_hLoc;
-        
+        } //else {
+            //g.drawRect(xLoc, yLoc, nodeW, nodeH);
+        //}
+        return new Point2D.Double(xLoc, yLoc);
     }
 }
