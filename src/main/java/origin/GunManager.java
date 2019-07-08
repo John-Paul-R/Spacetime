@@ -9,7 +9,7 @@ import java.awt.Color;
 
 import robocode.KeyEvent;
 import robocode.Rules;
-import origin.world.*;
+import origin.*;
 
 
 public class GunManager extends AComponentManager {

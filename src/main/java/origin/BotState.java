@@ -3,7 +3,7 @@ package origin;
 public abstract class BotState {
 
     //These will be considered our fundamental variables.
-    private double
+    protected double
         x,
         y,
         energy,

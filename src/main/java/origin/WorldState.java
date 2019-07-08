@@ -1,4 +1,4 @@
-package origin.world;
+package origin;
 
 import java.util.Collection;
 import java.util.HashMap;

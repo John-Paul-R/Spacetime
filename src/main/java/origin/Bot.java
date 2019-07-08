@@ -1,4 +1,4 @@
-package origin.world;
+package origin;
 /**
  * @param <T> The state type (EnemyState or SelfState) to be used in the instance of this class
 */
@@ -43,6 +43,7 @@ public class Bot {
 
     public EnemyState predictNextState(WorldState inputWorldState) {
         EnemyState knnState = ((EnemyState) states.getKNN(inputWorldState.activeBots.get(name).getCurrentState(), 2).get(0)).getNextState();
+        
         return knnState;
     }
     public KDTree<EnemyState> getStateTree() {

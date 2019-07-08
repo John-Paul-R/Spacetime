@@ -1,4 +1,4 @@
-package origin.world;
+package origin;
 
 interface IWorldComponent<T> {
     

@@ -79,10 +79,10 @@ public class EnemyState extends BotState implements KDElement {
     @Override
     public List<Double> getKDValues() {
         List<Double> out = new ArrayList<Double>(4);
-        out.add(Math.random());
-        out.add(Math.random());
-        out.add(Math.random());
-        out.add(Math.random());
+        out.add(absBearing/(Math.PI*2));
+        out.add(velocity/8);
+        out.add(Math.random()/10);
+        out.add(Math.random()/10);
         return out;
     }
     @Override

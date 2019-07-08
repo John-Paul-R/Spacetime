@@ -1,4 +1,4 @@
-package origin.world;
+package origin;
 
 public interface Predictable<T> {
     T predictNextState();

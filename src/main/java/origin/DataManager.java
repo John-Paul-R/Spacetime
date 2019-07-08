@@ -3,7 +3,7 @@ package origin;
 import java.awt.Graphics2D;
 import java.util.HashMap;
 
-import origin.world.Bot;
+import origin.Bot;
 import robocode.KeyEvent;
 
 import robocode.ScannedRobotEvent;
