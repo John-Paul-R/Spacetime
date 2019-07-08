@@ -89,7 +89,7 @@ public class Minigun extends AdvancedRobot {
             //execute all
             radar.execute();
             move.execute();
-            if (getTime() > 100)
+            if (getTime() > 100 || getRoundNum()>0)
                 gun.execute();
 
 

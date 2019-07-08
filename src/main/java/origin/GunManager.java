@@ -212,7 +212,7 @@ public class GunManager extends AComponentManager {
         }
 
         //TODO fix this vvv
-        /*
+        
         g.setColor(Color.RED);
         predictedState.paintBots(g);
 
@@ -220,7 +220,7 @@ public class GunManager extends AComponentManager {
         for(WorldState state : ALLGunMode.PIF.predictedStates) {
             state.paintBots(g);
         }
-        */
+        
         
 
 
