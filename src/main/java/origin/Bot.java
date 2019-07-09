@@ -60,7 +60,7 @@ public class Bot {
             knnStates.add(states.getKNN(startStates.get(i), k));
             System.out.println(startStates.size());
             for (KDElement e : knnStates.get(i)) {
-                nextStates.add( ((EnemyState) e) );//.getNextState()//TODO reimplement
+                nextStates.add( ((EnemyState) e) );////TODO reimplement
             }
         }
         

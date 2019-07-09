@@ -73,7 +73,7 @@ public class GunManager extends AComponentManager {
                 int predictionIterations = 0;
                 HashMap<String, Bot> activeBots = data.getActiveBots();
                 // TimeSegmentedWorld
-                while (predictor.isIncomplete() && timeCount < 2)
+                while (predictor.isIncomplete() && timeCount < 100)
                 //while (timeCount <= 6)
                 {
                     predictor.updateWorkingState(timeCount, selfLocation, bulletVelocity, cState);

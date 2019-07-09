@@ -44,6 +44,7 @@ World changes are simulated using some form of time evolution operator for each 
 The way I think I want to do this is to create a kdtree for all of the State objects, auto segmented and balanced by/on the various dimensions that we are interested in for the KNN search. Additionally, upon creation, every state object will be linked to the previous object, and, later, to the one created immediately after it. In this way, you can always find the "next" or "previous" object, preserving some of the benefits of an ordered list, while still maintaining the search effeciency of a KD Tree.
 
 TODO: add a slight "recency prefrence" to values gotten from kd tree. ATM it seems to prefer the oldest (first acquired) values
+Make actual prediction (vs just getting knn states) in the visualizer togglable
 
 ### 1v1: what if we track how a bot *changes* how it moves once it is hit (or bullet hit bullet). Similar to displacement vectors w/ knn search, but find take the delta of the delta for a given situation.  How they have changed the way they react to a situation over the course of the game? We can extrapolate from this and potentially predict how they will adapt to being hit.
 

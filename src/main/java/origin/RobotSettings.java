@@ -8,7 +8,7 @@ public final class RobotSettings {
     // in order to load the desired settings at the start of the game and each turn (in case something was changed by another manager)
     
     private static EnumMap<Settings, Integer> settings;
-    public static final int NUM_BOT_PREDICTION_BRANCHES = 5;
+    public static final int NUM_BOT_PREDICTION_BRANCHES = 1;
     RobotSettings(String defaults) {
         
         if (defaults == "" || defaults == null) //initialize defaults

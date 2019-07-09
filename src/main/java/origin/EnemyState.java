@@ -114,6 +114,8 @@ public class EnemyState extends BotState implements KDElement {
         out.add(velocity/8);//;////
         out.add(0D);//((double)tslDeceleration)/100);//()));
         out.add(1/((double)tslDeceleration+2D));//
+        //add 36/distance
+        //combine heading/velocity to make two more useful values
         return out;
     }
     @Override

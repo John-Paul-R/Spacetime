@@ -10,8 +10,9 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import robocode.*;
+import robocode.robotinterfaces.IInteractiveEvents;
 import robocode.util.Utils;
-public class Minigun extends AdvancedRobot {
+public class Minigun extends AdvancedRobot implements IInteractiveEvents {
     
     static LinkedList<EData> el;
     double sd=1;
@@ -109,17 +110,21 @@ public class Minigun extends AdvancedRobot {
     }
 
     private static boolean showGraphs = true;
-    public void onKeyPress(KeyEvent e) {
-        if (e.getSourceEvent().getKeyChar() == 'q') {
+    @Override
+    public void onKeyPressed(java.awt.event.KeyEvent e) {
+        if (e.getKeyChar() == 'q') {
             showGraphs = !showGraphs;
         }
     }
     public void onPaint(Graphics2D g) {
-        gun.paint(g,null);
-        for (Bot b : data.getActiveBots().values())
-        {
-            b.getStateTree().paint(g, 0, 0);
+        gun.paint(g, new int[] { showGraphs ? 1:0 });
+        if (showGraphs) {
+            for (Bot b : data.getActiveBots().values())
+            {
+                b.getStateTree().paint(g, 0, 0);
+            }
         }
+        
         if (useKNN) {
             //predicted paths
             final int osize = 10;
