@@ -36,7 +36,7 @@ public class WorldState extends AWorldState {
             String name = e.getKey();
             Bot bot = e.getValue();
             
-            newEnemyStates.put(name, bot.predictNextState(this, RobotSettings.NUM_BOT_PREDICTION_BRANCHES));
+            newEnemyStates.put(name, bot.getKNNStates(this, RobotSettings.NUM_BOT_PREDICTION_BRANCHES));
         }
         WorldState out = new WorldState();
         out.initBotStatesMap(newEnemyStates);

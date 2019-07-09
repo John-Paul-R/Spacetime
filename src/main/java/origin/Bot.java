@@ -3,6 +3,7 @@ package origin;
  * @param <T> The state type (EnemyState or SelfState) to be used in the instance of this class
 */
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -19,11 +20,11 @@ public class Bot {
     private EnemyState pState;
     private String name;
     //List of the latest predicted states
-    private LinkedList<EnemyState> predictedStates;
-    private EnemyState LatestPredictedState;
+    private LinkedList<EnemyState> nextStatesCache;
+    private EnemyState latestPredictedState;
 
     public Bot(String name) {
-        states = new KDTree<EnemyState>(RobotSettings.valueOf(Settings.KD_BIN_SIZE), RobotSettings.valueOf(Settings.NUM_KD_DIMS));
+        states = new KDTree<EnemyState>(RobotSettings.BOTSTATE_KD_BIN_SIZE, RobotSettings.BOTSTATE_NUM_KD_DIMS);
         this.name = name;
     }
     
@@ -50,21 +51,29 @@ public class Bot {
         }
         return nextStates;
     } */
-    public List<EnemyState> predictNextState(WorldState inputWorldState, int numBranches) {
+
+    public List<EnemyState> getKNNStates(WorldState inputWorldState, int numBranches) {
         int k = numBranches;
         List<EnemyState> startStates = inputWorldState.getBotStates(name, numBranches);
-        List<List<KDElement>> knnStates = new LinkedList<List<KDElement>>();
-        LinkedList<EnemyState> nextStates = new LinkedList<EnemyState>();
+        List<EnemyState> knnStates = new LinkedList<EnemyState>();
+        LinkedList<EnemyState> nextStatesCache = new LinkedList<EnemyState>();
+        this.nextStatesCache = nextStatesCache;
 
-        for (int i=0; i < startStates.size(); i++) {
-            knnStates.add(states.getKNN(startStates.get(i), k));
-            System.out.println(startStates.size());
-            for (KDElement e : knnStates.get(i)) {
-                nextStates.add( ((EnemyState) e) );////TODO reimplement
+        for (int i=0; i < startStates.size(); i++) { //Run KNN with k=numBranches for all input states in startStates (which are frome inputWorldState)
+
+            List<KDElement> clist = states.getKNN(startStates.get(i), k);
+
+            for (KDElement e : clist) {
+                EnemyState ee = ((EnemyState) e);
+                knnStates.add(ee);
+                nextStatesCache.add( ee );//.getNextState()//TODO reimplement
             }
         }
         
-        return nextStates;
+        return nextStatesCache;
+    }
+    public List<EnemyState> getNextStatesCache() {
+        return this.nextStatesCache;
     }
     
     public KDTree<EnemyState> getStateTree() {

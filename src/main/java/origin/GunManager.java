@@ -66,14 +66,35 @@ public class GunManager extends AComponentManager {
             static LinkedList<AWorldState> predictedStates;
             //NOTE, This applies the prediction to EVERY BOT in the world
             //ADDITIONALLY, it is up to the state to provide support for the various prediction methods (in the form of a predictNextState(PredictionMethod m) method).
-            static AWorldState predictState(WorldState state, PredictionMethod method, PredictionSynthesizer predictor, Point2D.Double selfLocation, double bulletVelocity) {
+            static AWorldState predictStateBranching(WorldState state, PredictionMethod method, PredictionSynthesizer predictor, Point2D.Double selfLocation, double bulletVelocity) {
                 predictedStates = new LinkedList<AWorldState>();
                 AWorldState cState = state;
                 int timeCount = 1;
                 int predictionIterations = 0;
                 HashMap<String, Bot> activeBots = data.getActiveBots();
                 // TimeSegmentedWorld
-                while (predictor.isIncomplete() && timeCount < 100)
+                while (predictor.isIncomplete() && timeCount < 2)
+                //while (timeCount <= 6)
+                {
+                    predictor.updateWorkingState(timeCount, selfLocation, bulletVelocity, cState);
+                    cState = cState.predictNextState(activeBots);
+                    predictedStates.add(cState);
+                    timeCount++;
+                    predictionIterations++;
+                }
+                    
+                //}
+                System.out.println("Num Prediction Iterations: " +predictionIterations);
+                return predictor.getFinalState();
+            }
+            static AWorldState predictStateDispVector(WorldState state, PredictionMethod method, PredictionSynthesizer predictor, Point2D.Double selfLocation, double bulletVelocity) {
+                predictedStates = new LinkedList<AWorldState>();
+                AWorldState cState = state;
+                int timeCount = 1;
+                int predictionIterations = 0;
+                HashMap<String, Bot> activeBots = data.getActiveBots();
+                // TimeSegmentedWorld
+                while (predictor.isIncomplete() && timeCount < 2)
                 //while (timeCount <= 6)
                 {
                     predictor.updateWorkingState(timeCount, selfLocation, bulletVelocity, cState);
@@ -122,7 +143,7 @@ public class GunManager extends AComponentManager {
 
 	@Override
 	public void execute() {
-        predictedState = ALLGunMode.PIF.predictState(new WorldState(data.getActiveBots()), PredictionMethod.KNN_PIF, new PredictionSynthesizer(), new Point2D.Double(self.getX(), self.getY()), Rules.getBulletSpeed(2.1));
+        predictedState = ALLGunMode.PIF.predictStateBranching(new WorldState(data.getActiveBots()), PredictionMethod.KNN_PIF, new PredictionSynthesizer(), new Point2D.Double(self.getX(), self.getY()), Rules.getBulletSpeed(2.1));
         System.out.println("Finished Prediction\n");
         //BEGIN Gun
         //Todo virtual guns

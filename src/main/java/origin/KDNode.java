@@ -169,7 +169,7 @@ public class KDNode<E> {
                 KDElement e = elements.get(i);
                 double cDist = e.kdDistanceTo(target); // TODO This changes the value of 'lastDist' within the KDElement object
                 
-                if (e != target && e != ((EnemyState) target).getPrevState()) {////WARN this condition is janky af
+                if (e.selectionConditionIsMet(target)) {////WARN this condition is janky af
                     if (maxMinIndex == -1 && cDist <= maxMinDist) {
                         minDists[cIndex] = cDist;
                         minElements.add(cIndex, e);
@@ -201,7 +201,7 @@ public class KDNode<E> {
             }
             System.out.println("END LOOP\n\n\n");
             out = minElements;
-            System.out.println(out.get(0));
+            //System.out.println(out.get(0));
         } else {
             //traverse kd tree
             if (target.getKDValues().get(splitDim).doubleValue() > this.boundValue) {

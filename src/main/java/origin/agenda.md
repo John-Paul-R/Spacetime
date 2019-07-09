@@ -25,9 +25,12 @@ World changes are simulated using some form of time evolution operator for each 
     * There will be a "predictNext" method in the WorldState which then iterates through all of the bots and waves and calls their own predictNext methods. Bots (and waves?) should store the most recently predicted values.
 
 
+---
 
 ## Some sort of "shared manager data" class
 (for things like if radar should have control & modes that require something else to be active in another file)
+
+---
 
 ## Implement Global KNN PIF
 *Vaguely outlined above. Will expand on this idea later.*
@@ -43,8 +46,21 @@ World changes are simulated using some form of time evolution operator for each 
 ### KNN Data Structure
 The way I think I want to do this is to create a kdtree for all of the State objects, auto segmented and balanced by/on the various dimensions that we are interested in for the KNN search. Additionally, upon creation, every state object will be linked to the previous object, and, later, to the one created immediately after it. In this way, you can always find the "next" or "previous" object, preserving some of the benefits of an ordered list, while still maintaining the search effeciency of a KD Tree.
 
-TODO: add a slight "recency prefrence" to values gotten from kd tree. ATM it seems to prefer the oldest (first acquired) values
-Make actual prediction (vs just getting knn states) in the visualizer togglable
+
+## TODO:
+---
+* add a slight "recency prefrence" to values gotten from kd tree. ATM it seems to prefer the oldest (first acquired) values
+
+* Make actual prediction (vs just getting knn states) in the visualizer togglable
+
+* When running the PIF, make sure you tell the KNN search to ignore the ORIGINAL target when searching for the intermediary states
+  * If this step-by-step PIF method does not work, consider developing a heuristic for determining time until bullet impact (perhaphs develop this val by ML/stats per bot, based on some factors) and then take the disp vector simply to that endpoint (take MANY disp vectors, actually and weight them by liklihood, then plug them into your gun, instead of the endpoint from the step-by-step PIF)
+  * Just did some thinking. I am now almost positive that using several displacement vectors for bot is almost definately the way to go. (as opposed to PIF). You solve the "vector scaling" issue by constructing the disp vectors from mini-PIFs (that do not branch). Actually... this just means that disp vectors in the way I am thinking of them are just "non branching PIF"... interesting.
+    * Note: If I do the disp vectors, ideally, I should implement a system for doing multiple K=1 searches, so that I do not end up stuck in the same bin forever. This shoulndn't be much of an issue either way though *IF* the dataset is large.
+
+* Perhaps add a sort of short term "memory" to this thing (This is kinda like the recency preference I was talking about before)
+### use inverse of squared distance in minowski formula for KD evaluation. 
+---
 
 ### 1v1: what if we track how a bot *changes* how it moves once it is hit (or bullet hit bullet). Similar to displacement vectors w/ knn search, but find take the delta of the delta for a given situation.  How they have changed the way they react to a situation over the course of the game? We can extrapolate from this and potentially predict how they will adapt to being hit.
 

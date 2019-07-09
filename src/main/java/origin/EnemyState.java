@@ -145,5 +145,11 @@ public class EnemyState extends BotState implements KDElement {
         return this.tslDeceleration;
     }
 
+    @Override
+    public boolean selectionConditionIsMet(KDElement target) {
+         /*&& ((EnemyState) target).getNextState() != null*/
+        return (this != target && this != ((EnemyState) target).getPrevState());
+    }
+
 }
 

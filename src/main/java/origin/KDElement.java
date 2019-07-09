@@ -11,5 +11,7 @@ public interface KDElement {
     public int compareTo(KDElement otherElement);
 
     public double getLastKDDist();
+
+	public boolean selectionConditionIsMet(KDElement target);
     
 }

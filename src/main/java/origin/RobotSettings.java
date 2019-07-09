@@ -1,6 +1,5 @@
 package origin;
 
-import java.util.ArrayList;
 import java.util.EnumMap;
 
 public final class RobotSettings {
@@ -8,7 +7,9 @@ public final class RobotSettings {
     // in order to load the desired settings at the start of the game and each turn (in case something was changed by another manager)
     
     private static EnumMap<Settings, Integer> settings;
-    public static final int NUM_BOT_PREDICTION_BRANCHES = 1;
+    public static final int NUM_BOT_PREDICTION_BRANCHES = 20;
+    public static final int BOTSTATE_NUM_KD_DIMS = 4;
+    public static final int BOTSTATE_KD_BIN_SIZE = 250;
     RobotSettings(String defaults) {
         
         if (defaults == "" || defaults == null) //initialize defaults
@@ -36,8 +37,7 @@ public final class RobotSettings {
         settings.put(Settings.  ENABLE_MOVEMENT     ,  1  );
         settings.put(Settings.  GUN_MODE_OVERRIDE   , -1  );
         settings.put(Settings.  MOVE_MODE_OVERRIDE  , -1  );
-        settings.put(Settings.  NUM_KD_DIMS         ,  4  );
-        settings.put(Settings.  KD_BIN_SIZE         ,  50 );
+
     }
     public static int valueOf(Settings setting) {
         return settings.get(setting);
