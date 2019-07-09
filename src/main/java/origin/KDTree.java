@@ -46,6 +46,8 @@ public class KDTree<E> {
             maxDepth = depth;
         }
     }
+
+    //Painting
     public void paint(Graphics2D g, int x, int y)
     {
         g.setColor(new Color(255, 255, 255, 55));
@@ -80,10 +82,10 @@ public class KDTree<E> {
     }
 
     Point2D.Double drawNode(Graphics2D g, int x, int y, KDNode<E> n, int depth, int hLoc, double parentX, double parentY) {
-        final int hSpacing = 18/4;
+        final int hSpacing = 1; //18/4;
         final int vSpacing = 18/4;
         final int nodeH = 40/4;
-        final int nodeW = 36/4;
+        final int nodeW = 36/9;
 
         int abs_hLoc = hLoc*(nodeW+hSpacing);
         int centerOffset = ((int)Math.pow(2, depth)*(nodeW+hSpacing)/2);
@@ -94,14 +96,14 @@ public class KDTree<E> {
             if (n.size() == -1) {
                 g.setColor(new Color(255, 255, 0, 55));
                 g.fillRect(xLoc +nodeW/4,  yLoc +nodeH/4, nodeW/2, nodeH/2);
-                g.drawLine(xLoc+nodeW/2, yLoc+nodeH/4, (int)parentX+nodeW/2, (int)parentY+nodeH/4*3);
+                g.drawLine(xLoc+nodeW/2, yLoc+nodeH/4, (int)(parentX+nodeW/2), (int)(parentY+nodeH/4*3));
             } else {
                 g.drawRect(xLoc, yLoc, nodeW, nodeH);
                 g.fillRect(xLoc, yLoc, nodeW, (int)((double)nodeH/(double)binSize*n.size()));
-                g.drawLine(xLoc+nodeW/2, yLoc, (int)parentX+nodeW/2, (int)parentY+nodeH/4*3);
+                g.drawLine(xLoc+nodeW/2, yLoc, (int)(parentX+nodeW/2), (int)(parentY+nodeH/4*3));
                 //g.drawLine(x+abs_hLoc , yLoc, x+abs_hLoc+nodeW/2-((nodeW+hSpacing))*(hLoc%2==0 ? 0 : 1),  y+(nodeH+vSpacing)*(depth-1)+nodeH/2);
             }
-            System.out.println(n.size());
+            //System.out.println(n.size());
         } //else {
             //g.drawRect(xLoc, yLoc, nodeW, nodeH);
         //}

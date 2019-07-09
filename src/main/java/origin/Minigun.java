@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
-import origin.*;
 import robocode.*;
 import robocode.util.Utils;
 public class Minigun extends AdvancedRobot {

@@ -5,10 +5,10 @@ import java.util.EnumMap;
 
 public final class RobotSettings {
     // ALL manager classes should refer to this class in their init method AND in their update method
-    // in order to load the desired settings at the start of the game and each turn (in case something was changed by another manager) 
+    // in order to load the desired settings at the start of the game and each turn (in case something was changed by another manager)
     
     private static EnumMap<Settings, Integer> settings;
-
+    public static final int NUM_BOT_PREDICTION_BRANCHES = 5;
     RobotSettings(String defaults) {
         
         if (defaults == "" || defaults == null) //initialize defaults

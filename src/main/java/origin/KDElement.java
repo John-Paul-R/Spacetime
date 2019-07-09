@@ -10,6 +10,6 @@ public interface KDElement {
 
     public int compareTo(KDElement otherElement);
 
-    public int getLastKDDist();
+    public double getLastKDDist();
     
 }

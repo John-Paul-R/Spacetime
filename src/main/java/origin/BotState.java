@@ -1,6 +1,9 @@
 package origin;
 
-public abstract class BotState {
+import java.util.ArrayList;
+import java.util.List;
+
+public abstract class BotState implements KDElement {
 
     //These will be considered our fundamental variables.
     protected double
@@ -9,7 +12,7 @@ public abstract class BotState {
         energy,
         heading, //global absolute, 0 to 2pi
         velocity;
-    private int time;
+    protected int time;
 
     //Derivative variables
 
@@ -50,5 +53,26 @@ public abstract class BotState {
         return time;
     }
 
-
+    //TODO Implement this
+    @Override
+    public List<Double> getKDValues() {
+        List<Double> out = new ArrayList<Double>(4);
+        out.add(Math.random());
+        out.add(Math.random());
+        out.add(Math.random());
+        out.add(Math.random());
+        return out;
+    }
+    @Override
+    public double kdDistanceTo(KDElement otherElement) {
+        return 0;
+    }
+    @Override
+    public double getLastKDDist() {
+        return 0;
+    }
+    @Override
+    public int compareTo(KDElement otherElement) {
+        return 0;
+    }
 }

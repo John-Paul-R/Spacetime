@@ -111,11 +111,13 @@ public class KDNode<E> {
                     return -1;
                 }
 
-                return  ((int)e2.getKDValues().get(dimensionIndex).doubleValue()
-                        -(int)e1.getKDValues().get(dimensionIndex).doubleValue());
+                return  (int)Math.signum(e1.getKDValues().get(dimensionIndex).doubleValue()
+                        -e2.getKDValues().get(dimensionIndex).doubleValue());
             }
         });
-
+        for (KDElement elem : elements) {
+            System.out.println("KD Value (Heading): " + elem.getKDValues().get(0));
+        }
         this.upperNode = new KDNode<E>(maxSize, numDims, this, depth+1, tree);
         this.lowerNode = new KDNode<E>(maxSize, numDims, this, depth+1, tree);
         
@@ -166,7 +168,8 @@ public class KDNode<E> {
             for (int i=0; i < elements.size(); i++) {
                 KDElement e = elements.get(i);
                 double cDist = e.kdDistanceTo(target); // TODO This changes the value of 'lastDist' within the KDElement object
-                if (e != target) {
+                
+                if (e != target && e != ((EnemyState) target).getPrevState()) {////WARN this condition is janky af
                     if (maxMinIndex == -1 && cDist <= maxMinDist) {
                         minDists[cIndex] = cDist;
                         minElements.add(cIndex, e);
@@ -182,15 +185,23 @@ public class KDNode<E> {
                         
                             public int compare(KDElement e1, KDElement e2)
                             {
-                                return (int)(e2.getLastKDDist() - e1.getLastKDDist());
+                                
+                                return (int)Math.signum(e1.getLastKDDist() - e2.getLastKDDist());
                             }
                         });
                         maxMinIndex = minElements.size()-1;
                         maxMinDist = minElements.get(maxMinIndex).getLastKDDist();
+                        
                     }
                 }
             }
+            for (KDElement elem : minElements) {
+                System.out.println("KD Value (Heading): " + elem.getKDValues().get(0));
+                System.out.println("KD Dist: " + elem.getLastKDDist());
+            }
+            System.out.println("END LOOP\n\n\n");
             out = minElements;
+            System.out.println(out.get(0));
         } else {
             //traverse kd tree
             if (target.getKDValues().get(splitDim).doubleValue() > this.boundValue) {

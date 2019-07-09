@@ -1,15 +1,15 @@
 package origin;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.awt.Color;
+import java.util.List;
 
 import robocode.KeyEvent;
 import robocode.Rules;
-import origin.*;
 
 
 public class GunManager extends AComponentManager {
@@ -38,19 +38,23 @@ public class GunManager extends AComponentManager {
         private WorldState workingState;
         private boolean isIncomplete;
         PredictionSynthesizer() {
-            workingState = new WorldState(data.getActiveBots(), false);
+            workingState = new WorldState();
             isIncomplete = true;
         }
         boolean isIncomplete() {
             return isIncomplete;
         }
-        void updateWorkingState(int bulletTime, Point2D.Double selfLocation, double bulletVelocity, WorldState newState) {
+        void updateWorkingState(int bulletTime, Point2D.Double selfLocation, double bulletVelocity, AWorldState newState) {
             double range = bulletTime*bulletVelocity;
-            HashMap<String, BotState> botStates = newState.getInRange(range, selfLocation);
-            if (botStates.size() == newState.getBotStates().size())
-            {
+            HashMap<String, List<EnemyState>> botStates = newState.getStatesInRange(range, selfLocation);
+            int numBotStates = 0;
+            for (List<EnemyState> e : botStates.values()) {
+                numBotStates += e.size();
+            }
+            if (numBotStates >= newState.getAllBotStatesUnlinked().size()) {
                 isIncomplete = false;
             }
+            
             workingState.addBotStates(botStates);
         }
         WorldState getFinalState() {
@@ -59,23 +63,28 @@ public class GunManager extends AComponentManager {
     }
     abstract static class ALLGunMode {
         static final class PIF {
-            static LinkedList<WorldState> predictedStates;
+            static LinkedList<AWorldState> predictedStates;
             //NOTE, This applies the prediction to EVERY BOT in the world
             //ADDITIONALLY, it is up to the state to provide support for the various prediction methods (in the form of a predictNextState(PredictionMethod m) method).
-            static WorldState predictState(WorldState state, PredictionMethod method, PredictionSynthesizer predictor, Point2D.Double fireLocation, double bulletVelocity) {
-                predictedStates = new LinkedList<WorldState>();
-                //Point2D.Double predictedLocation = null;
-                Point2D.Double myLocation = fireLocation;
-                WorldState cState = state;
+            static AWorldState predictState(WorldState state, PredictionMethod method, PredictionSynthesizer predictor, Point2D.Double selfLocation, double bulletVelocity) {
+                predictedStates = new LinkedList<AWorldState>();
+                AWorldState cState = state;
                 int timeCount = 1;
+                int predictionIterations = 0;
+                HashMap<String, Bot> activeBots = data.getActiveBots();
                 // TimeSegmentedWorld
-                while (predictor.isIncomplete()) {
-                    predictor.updateWorkingState(timeCount, myLocation, bulletVelocity, cState);
-                    cState = cState.predictNextState();
+                while (predictor.isIncomplete() && timeCount < 2)
+                //while (timeCount <= 6)
+                {
+                    predictor.updateWorkingState(timeCount, selfLocation, bulletVelocity, cState);
+                    cState = cState.predictNextState(activeBots);
                     predictedStates.add(cState);
                     timeCount++;
+                    predictionIterations++;
                 }
-                
+                    
+                //}
+                System.out.println("Num Prediction Iterations: " +predictionIterations);
                 return predictor.getFinalState();
             }
         }
@@ -84,7 +93,7 @@ public class GunManager extends AComponentManager {
         }
     }
 
-    private WorldState predictedState;
+    private AWorldState predictedState;
     //Predictor method. Takes a state, then calls a certain type of predictor to get the next state (circular, linear, knn, regression, etc.)
     GunManager() {
 
@@ -113,7 +122,7 @@ public class GunManager extends AComponentManager {
 
 	@Override
 	public void execute() {
-        predictedState = ALLGunMode.PIF.predictState(new WorldState(data.getActiveBots(), true), PredictionMethod.KNN_PIF, new PredictionSynthesizer(), new Point2D.Double(self.getX(), self.getY()), Rules.getBulletSpeed(2.1));
+        predictedState = ALLGunMode.PIF.predictState(new WorldState(data.getActiveBots()), PredictionMethod.KNN_PIF, new PredictionSynthesizer(), new Point2D.Double(self.getX(), self.getY()), Rules.getBulletSpeed(2.1));
         System.out.println("Finished Prediction\n");
         //BEGIN Gun
         //Todo virtual guns
@@ -206,9 +215,12 @@ public class GunManager extends AComponentManager {
         }
 
         g.setColor(new Color(255,0,255));
-        WorldState cState = new WorldState(data.getActiveBots(), true);
-        for (BotState e : cState.getBotStates()) {
-            g.drawRect((int)(e.getX()-18), (int)(e.getY()-18), 36, 36);
+        WorldState cState = new WorldState(data.getActiveBots());
+        for (EnemyState e : cState.getAllBotStatesUnlinked()) {
+            int ex = (int)(e.getX()-18);
+            int ey = (int)(e.getY()-18);
+            g.drawRect(ex, ey, 36, 36);
+            g.drawLine( (int)e.getX(), (int)e.getY(), (int)(e.getX()+36*Math.sin(e.getHeading())), (int)(e.getY()+36*Math.cos(e.getHeading())) );
         }
 
         //TODO fix this vvv
@@ -217,7 +229,7 @@ public class GunManager extends AComponentManager {
         predictedState.paintBots(g);
 
         g.setColor(new Color(255,255,255,100));
-        for(WorldState state : ALLGunMode.PIF.predictedStates) {
+        for(AWorldState state : ALLGunMode.PIF.predictedStates) {
             state.paintBots(g);
         }
         

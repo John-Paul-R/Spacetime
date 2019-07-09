@@ -6,9 +6,6 @@ import robocode.KeyEvent;
 
 public class MoveManager extends AComponentManager {
 
-    private Minigun self;
-    private DataManager data;
-
     public MoveManager() {
         
     }

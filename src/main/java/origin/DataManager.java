@@ -45,6 +45,7 @@ public class DataManager {
         return allBots;
     }
 
+    private int tld = 0;
     public void onScannedRobot(ScannedRobotEvent e) {
         if (!activeBots.containsKey(e.getName())) {
             activeBots.put(e.getName(), new Bot(e.getName()));
@@ -54,7 +55,13 @@ public class DataManager {
         activeBots.get(e.getName()).addState(newState);
         prevState.setNextState(newState);
         newState.setPrevState(prevState);
-
+        
+        //Check for decel
+        if (Math.abs(newState.getVelocity()) < Math.abs(prevState.getVelocity())){
+            tld = 0;
+        }
+        newState.setTLD(tld);
+        tld++;
     }
 
     public void update() {
